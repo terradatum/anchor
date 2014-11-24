@@ -42,35 +42,6 @@
 
         var Defaults = {};
 
-        // global function providing inheritance
-        function extend(type, supertype){
-            for(var member in supertype.prototype)
-                if(!type.prototype[member])
-                    type.prototype[member] = supertype.prototype[member];
-        }
-
-        // helpers for UTF-8, credits to Johan Sundström and the Mozilla Developer Network
-        function utf8_to_b64( str ) {
-            return window.btoa(unescape(encodeURIComponent( str )));
-        }
-        function b64_to_utf8( str ) {
-            return decodeURIComponent(escape(window.atob( str )));
-        }
-
-        // available node types enumeration with textual representation
-        var NodeType = {
-            UNKNOWN:    0, '0': "Unknown",
-            ANCHOR:     1, '1': "Anchor",
-            ATTRIBUTE:  2, '2': "Attribute",
-            TIE:        3, '3': "Tie",
-            KNOT:       4, '4': "Knot",
-            EDGE:       5, '5': "Edge",
-            PARTITION:  6, '6': "Partition",
-            // "static variables" masses and charges, for example NodeType.mass[NodeType.ANCHOR];
-            mass:       [null, 2, 3, 5, 5, 2, null],
-            charge:     [null, 1, 1, 1, 1, 4, null]
-        };
-
         var UniqueIdentity = {
             lastId: 0,
             usedIds: [],
@@ -84,70 +55,7 @@
                 return id;
             }
         };
-
-        var DataTypeConverter = {
-            MATCH: 0,
-            REPLACE: 1,
-            SQLServer_to_Oracle: [
-                // exact numbers
-                [/"tinyint"/ig,                         '"NUMBER(3)"'],
-                [/"smallint"/ig,                        '"NUMBER(5)"'],
-                [/"int"|"integer"/ig,                   '"NUMBER(10)"'],
-                [/"bigint"/ig,                          '"NUMBER(19)"'],
-                [/"decimal\(([0-9]+),\s*([0-9]+)\)"/ig, '"NUMBER($1,$2)"'],
-                [/"numeric\(([0-9]+),\s*([0-9]+)\)"/ig, '"NUMBER($1,$2)"'],
-                [/"smallmoney"/ig,                      '"NUMBER(10,4)"'],
-                [/"money"/ig,                           '"NUMBER(19,4)"'],
-                // approximate numbers
-                [/"real"/ig,                            '"BINARY_FLOAT"'],
-                [/"float"/ig,                           '"BINARY_DOUBLE"'],
-                // time types
-                [/"smalldatetime"/ig,                   '"TIMESTAMP(3)"'],
-                [/"datetime"/ig,                        '"TIMESTAMP(3)"'],
-                [/"datetime2\(([0-9]+)\)"/ig,           '"TIMESTAMP($1)"'],
-                [/"datetimeoffset\(([0-9]+)\)"/ig,      '"TIMESTAMP($1) WITH TIME ZONE"'],
-                // strings
-                [/"varchar\(([0-9]+)\)"/ig,             '"VARCHAR2($1)"'],
-                [/"varchar\(max\)"/ig,                  '"CLOB"'],
-                [/"text"/ig,                            '"LONG"'],
-                // binaries
-                [/"binary\(([0-9]+)\)"/ig,              '"RAW($1)"'],
-                [/"varbinary\(([0-9]+)\)"/ig,           '"LONG RAW"'],
-                [/"varbinary\(max\)"/ig,                '"BLOB"'],
-                [/"image"/ig,                           '"LONG RAW"'],
-                // other
-                [/"xml"/ig,                             '"XMLTYPE"'],
-                [/"bit"/ig,                             '"NUMBER(1)"'],
-                [/"uniqueidentifier"/ig,                '"RAW(16)"']
-            ],
-            SQLServer_to_PostgreSQL: [
-                [/"tinyint"/ig,                         '"smallint"'],
-                [/"NUMBER\(([0-9]+)\)"/ig,              '"numeric($1)"'],
-                [/"datetime"/ig,                        '"timestamp"'],
-                [/"datetime2\(([0-9]+)\)"/ig,           '"timestamp($1)"'],
-                [/"varchar"/ig,                         '"char(1)"'],
-            ],
-            PostgreSQL_to_SQLServer: [
-                [/"numeric\(([0-9]+)\)"/ig,             '"NUMBER($1)"'],
-                [/"timestamp"/ig,                       '"datetime"'],
-                [/"timestamp\(([0-9]+)\)"/ig,           '"datetime2($1)"'],
-                [/"char(1)"/ig,                         '"varchar"'],
-            ],
-            convert: function(xml, source, target) {
-                var ruleset = this[source + '_to_' + target];
-                if(!ruleset) {
-                    alert('Conversion between ' + source + ' and ' + target + ' is not supported.');
-                    return xml;
-                }
-                var str = (new XMLSerializer()).serializeToString(xml);
-                var rule;
-                for(var i = 0; rule = ruleset[i]; i++) {
-                    str = str.replace(rule[this.MATCH], rule[this.REPLACE]);
-                }
-                xml = (new DOMParser()).parseFromString(str, 'text/xml');
-                return xml;
-            }
-        };
+        
 
         var Actions = {
             getDirective: function() {
@@ -155,23 +63,6 @@
                 var temporalization = Defaults.temporalization;
                 var directive = database + '_' + temporalization + '.directive';
                 return directive;
-            },
-            transform: function (xmlDocument, transformationURL, ownerDocument) {
-                var result;
-                var xmlhttp = new window.XMLHttpRequest();
-                // Added random parameter to prevent caching...
-                xmlhttp.open("GET", transformationURL + '?r=' + Math.random(), false);
-                xmlhttp.send(null);
-                var processor = new XSLTProcessor();
-                if(xmlhttp.responseXML) {
-                    processor.importStylesheet(xmlhttp.responseXML.documentElement);
-                }
-                else {
-                    var xml = new DOMParser().parseFromString(xmlhttp.responseText, 'text/xml');
-                    processor.importStylesheet(xml.documentElement);
-                }
-                result = processor.transformToFragment(xmlDocument, ownerDocument);
-                return result;
             },
             createEmail: function(str) {
                 ASKBEFOREUNLOAD = false; // prevent onbeforeunload behavior
