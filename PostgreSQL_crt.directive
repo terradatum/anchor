@@ -1,6 +1,6 @@
 # This is the processing directive for concurrent-reliance-temporal
 # Anchor Modeling in PostgreSQL
-#SQL/Helpers.js
+SQL/Helpers.js
 SQL/PostgreSQL/HelpersOverride.js
 SQL/PostgreSQL/NamingConvention.js
 #SQL/PostgreSQL/DatabaseInitialization.js
