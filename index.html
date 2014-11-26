@@ -40,6 +40,8 @@
         // set to true to show debugging information
         var DEBUG = false;
 
+        var PARAMETERS = [];
+
         var Defaults = {};
 
         var UniqueIdentity = {
@@ -296,7 +298,9 @@
               PARAMETERS[pair[0]] = pair[1];
             }
 
-            var xmlModel = Actions.xmlFromURL('../api/admin/genAnchorModel');
+            var modelStr = PARAMETERS.model || 'genAnchorModel';
+
+            var xmlModel = Actions.xmlFromURL('../api/admin/' + modelStr);
 
             var object = Sisulator.objectify(xmlModel, Sisulator.MAP);
             Defaults = object.schema.metadata;
