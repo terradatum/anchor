@@ -23,7 +23,7 @@ while (knot = schema.nextKnot()) {
 -- Knot table ---------------------------------------------------------------------------------------------------------
 -- $knot.name table
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$knot.name\" (
+CREATE TABLE IF NOT EXISTS $knot.capsule$.\"$knot.name\" (
     \"$knot.identityColumnName\" $(knot.isGenerator())? $knot.identityGenerator not null, : $knot.identity not null,
     \"$knot.valueColumnName\" $knot.dataRange not null,
     $(knot.hasChecksum())? \"$knot.checksumColumnName\" bytea,
@@ -35,6 +35,6 @@ CREATE TABLE IF NOT EXISTS \"$knot.name\" (
         $(knot.hasChecksum())? \"$knot.checksumColumnName\" : \"$knot.valueColumnName\"
     )
 );
-ALTER TABLE IF EXISTS ONLY \"$knot.name\" CLUSTER ON \"pk$knot.name\";
+ALTER TABLE IF EXISTS ONLY $knot.capsule$.\"$knot.name\" CLUSTER ON \"pk$knot.name\";
 ~*/
 }

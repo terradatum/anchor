@@ -41,7 +41,7 @@ while (tie = schema.nextTie()) {
 /*~
 -- $tie.positName table (having $tie.roles.length roles)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$tie.positName\" (
+CREATE TABLE IF NOT EXISTS $tie.capsule$.\"$tie.positName\" (
     $tie.identityColumnName $tie.identityGenerator not null,
 ~*/
     var role;
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS \"$tie.positName\" (
 /*~
     constraint ${(tie.positName + '_fk' + role.name)}$ foreign key (
         $role.columnName
-    ) references $(role.anchor)? \"$role.anchor.name\"($role.anchor.identityColumnName), : \"$role.knot.name\"(\"$role.knot.identityColumnName\"),
+    ) references $(role.anchor)? $role.anchor.capsule\.\"$role.anchor.name\"($role.anchor.identityColumnName), : $role.knot.capsule$.\"$role.knot.name\"(\"$role.knot.identityColumnName\"),
  ~*/
     }
     // one-to-one and we need additional constraints
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS \"$tie.positName\" (
 -- Tie annex table ----------------------------------------------------------------------------------------------------
 -- $tie.annexName table
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$tie.annexName\" (
+CREATE TABLE IF NOT EXISTS $tie.capsule$.\"$tie.annexName\" (
     $tie.identityColumnName $tie.identityGenerator not null,
     $tie.positingColumnName $schema.metadata.positingRange not null,
     $tie.positorColumnName $schema.metadata.positorRange not null,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS \"$tie.annexName\" (
     $(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
     constraint fk$tie.annexName foreign key (
         $tie.identityColumnName
-    ) references \"$tie.positName\"($tie.identityColumnName),
+    ) references $tie.capsule$.\"$tie.positName\"($tie.identityColumnName),
     constraint pk$tie.annexName primary key (
         $tie.identityColumnName,
         $tie.positorColumnName,
@@ -162,7 +162,7 @@ LANGUAGE plpgsql;
 
 CREATE TRIGGER trig_$tie.annexName
   BEFORE UPDATE
-  ON \"$tie.annexName\"
+  ON $tie.capsule$.\"$tie.annexName\"
   FOR EACH ROW
   EXECUTE PROCEDURE func_$tie.annexName();
 ~*/

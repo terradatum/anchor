@@ -16,7 +16,7 @@ while (anchor = schema.nextAnchor()) {
 -- pk$attribute.name optional temporal consistency constraint
 -----------------------------------------------------------------------------------------------------------------------
 
-    CREATE OR REPLACE VIEW \"$attribute.name\"
+    CREATE OR REPLACE VIEW $attribute.capsule$.\"$attribute.name\"
     AS
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
@@ -30,9 +30,9 @@ while (anchor = schema.nextAnchor()) {
         a.$attribute.reliabilityColumnName,
         a.$attribute.reliableColumnName
     FROM
-        \"$attribute.positName\" p
+        $attribute.capsule$.\"$attribute.positName\" p
     JOIN
-        \"$attribute.annexName\" a
+        $attribute.capsule$.\"$attribute.annexName\" a
     ON
         a.$attribute.identityColumnName = p.$attribute.identityColumnName;
 ~*/
@@ -43,7 +43,7 @@ while (anchor = schema.nextAnchor()) {
     -- TODO: Explore further the efficacy of using a materialized view in place of
     -- the mssql concept of a view with a unique clustered index.
     --CREATE UNIQUE CLUSTERED INDEX [pk$attribute.name]
-    --ON \"$attribute.name\" (
+    --ON $attribute.capsule$.\"$attribute.name\" (
     --    $attribute.reliableColumnName desc,
     --    $attribute.anchorReferenceName asc,
     --    $(attribute.timeRange)? $attribute.changingColumnName desc,

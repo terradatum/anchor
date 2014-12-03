@@ -2,6 +2,7 @@
 SQL/Helpers.js
 SQL/PostgreSQL/HelpersOverride.js
 SQL/PostgreSQL/NamingConvention.js
+SQL/PostgreSQL/DatabaseInitialization.js
 #SQL/PostgreSQL/clr/Anchor.js
 #SQL/PostgreSQL/crt/SetupPositorPartitioning.js
 #SQL/PostgreSQL/crt/CreatePositorAndDefault.js

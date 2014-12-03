@@ -21,7 +21,7 @@ while (anchor = schema.nextAnchor()) {
 -- Anchor table -------------------------------------------------------------------------------------------------------
 -- $anchor.name table (with ${(anchor.attributes ? anchor.attributes.length : 0)}$ attributes)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$anchor.name\" (
+CREATE TABLE IF NOT EXISTS $anchor.capsule$.\"$anchor.name\" (
     $anchor.identityColumnName $anchor.identityGenerator not null,
     $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType not null, : $anchor.dummyColumnName bit null,
     constraint pk$anchor.name primary key (
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS \"$anchor.name\" (
 -- Historized attribute posit table -----------------------------------------------------------------------------------
 -- $attribute.positName table (on $anchor.name)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
+CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     $attribute.identityColumnName $attribute.identityGenerator not null,
     $attribute.anchorReferenceName $anchor.identity not null,
     $attribute.valueColumnName $attribute.dataRange not null,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
     $attribute.changingColumnName $attribute.timeRange not null,
     constraint fk$attribute.positName foreign key (
         $attribute.anchorReferenceName
-    ) references \"$anchor.name\"($anchor.identityColumnName),
+    ) references $anchor.capsule$.\"$anchor.name\"($anchor.identityColumnName),
     constraint pk$attribute.positName primary key (
         $attribute.identityColumnName
     ),
@@ -68,17 +68,17 @@ CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
 -- Knotted historized attribute posit table ---------------------------------------------------------------------------
 -- $attribute.positName table (on $anchor.name)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
+CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     $attribute.identityColumnName $attribute.identityGenerator not null,
     $attribute.anchorReferenceName $anchor.identity not null,
     $attribute.knotReferenceName $knot.identity not null,
     $attribute.changingColumnName $attribute.timeRange not null,
     constraint fk_A_$attribute.positName foreign key (
         $attribute.anchorReferenceName
-    ) references \"$anchor.name\"($anchor.identityColumnName),
+    ) references $anchor.capsule$.\"$anchor.name\"($anchor.identityColumnName),
     constraint fk_K_$attribute.positName foreign key (
         $attribute.knotReferenceName
-    ) references \"$knot.name\"(\"$knot.identityColumnName\"),
+    ) references $knot.capsule$.\"$knot.name\"(\"$knot.identityColumnName\"),
     constraint pk$attribute.positName primary key (
         $attribute.identityColumnName
     ),
@@ -96,16 +96,16 @@ CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
 -- Knotted static attribute posit table -------------------------------------------------------------------------------
 -- $attribute.positName table (on $anchor.name)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
+CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     $attribute.identityColumnName $attribute.identityGenerator not null,
     $attribute.anchorReferenceName $anchor.identity not null,
     $attribute.knotReferenceName $knot.identity not null,
     constraint fk_A_$attribute.positName foreign key (
         $attribute.anchorReferenceName
-    ) references \"$anchor.name\"($anchor.identityColumnName),
+    ) references $anchor.capsule$.\"$anchor.name\"($anchor.identityColumnName),
     constraint fk_K_$attribute.positName foreign key (
         $attribute.knotReferenceName
-    ) references \"$knot.name\"(\"$knot.identityColumnName\"),
+    ) references $knot.capsule$.\"$knot.name\"(\"$knot.identityColumnName\"),
     constraint pk$attribute.positName primary key (
         $attribute.identityColumnName
     ),
@@ -121,14 +121,14 @@ CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
 -- Static attribute posit table -----------------------------------------------------------------------------------
 -- $attribute.positName table (on $anchor.name)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
+CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     $attribute.identityColumnName $attribute.identityGenerator not null,
     $attribute.anchorReferenceName $anchor.identity not null,
     $attribute.valueColumnName $attribute.dataRange not null,
     $(attribute.hasChecksum())? $attribute.checksumColumnName as cast(${schema.metadata.encapsulation}$.MD5(cast($attribute.valueColumnName as varbinary(max))) as varbinary(16)) persisted,
     constraint fk$attribute.positName foreign key (
         $attribute.anchorReferenceName
-    ) references \"$anchor.name\"($anchor.identityColumnName),
+    ) references $anchor.capsule$.\"$anchor.name\"($anchor.identityColumnName),
     constraint pk$attribute.positName primary key (
         $attribute.identityColumnName
     ),
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS \"$attribute.positName\" (
 -- Attribute annex table ----------------------------------------------------------------------------------------------
 -- $attribute.annexName table (of $attribute.positName on $anchor.name)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS \"$attribute.annexName\" (
+CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.annexName\" (
     $attribute.identityColumnName $attribute.identityGenerator not null,
     $attribute.positingColumnName $schema.metadata.positingRange not null,
     $attribute.positorColumnName $schema.metadata.positorRange not null,
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS \"$attribute.annexName\" (
     $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
     constraint fk$attribute.annexName foreign key (
         $attribute.identityColumnName
-    ) references \"$attribute.positName\"($attribute.identityColumnName),
+    ) references $attribute.capsule$.\"$attribute.positName\"($attribute.identityColumnName),
     constraint pk$attribute.annexName primary key (
         $attribute.identityColumnName,
         $attribute.positorColumnName,
@@ -188,7 +188,7 @@ LANGUAGE plpgsql;
 
 CREATE TRIGGER trig_$attribute.annexName
   BEFORE UPDATE
-  ON \"$attribute.annexName\"
+  ON $attribute.capsule$.\"$attribute.annexName\"
   FOR EACH ROW
   EXECUTE PROCEDURE func_$attribute.annexName();
 ~*/
