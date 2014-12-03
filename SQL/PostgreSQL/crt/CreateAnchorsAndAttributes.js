@@ -149,13 +149,7 @@ CREATE TABLE IF NOT EXISTS \"$attribute.annexName\" (
     $attribute.positingColumnName $schema.metadata.positingRange not null,
     $attribute.positorColumnName $schema.metadata.positorRange not null,
     $attribute.reliabilityColumnName $schema.metadata.reliabilityRange not null,
-    -- *** FIX ME *** --
-    --$attribute.reliableColumnName as isnull(cast(
-    --    case
-    --        when $attribute.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
-    --        else 1
-    --    end
-    --as tinyint), 1) persisted,
+    $attribute.reliableColumnName smallint not null,
     $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
     constraint fk$attribute.annexName foreign key (
         $attribute.identityColumnName
@@ -166,5 +160,36 @@ CREATE TABLE IF NOT EXISTS \"$attribute.annexName\" (
         $attribute.positingColumnName
     )
 )$scheme;
+
+-- This trigger serves to replace the computed column functionality that was in the MS SQL code
+--$attribute.reliableColumnName as isnull(cast(
+--    case
+--        when $attribute.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
+--        else 1
+--    end
+--as tinyint), 1) persisted
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION func_$attribute.annexName()
+  RETURNS trigger AS
+$$BODY$$
+BEGIN
+    NEW.$attribute.reliableColumnName =
+        coalesce(cast(
+            case
+                when $attribute.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
+                else 1
+            end
+       as smallint), 1);
+ 
+    RETURN NEW;
+END;
+$$BODY$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER trig_$attribute.annexName
+  BEFORE UPDATE
+  ON \"$attribute.annexName\"
+  FOR EACH ROW
+  EXECUTE PROCEDURE func_$attribute.annexName();
 ~*/
 }}

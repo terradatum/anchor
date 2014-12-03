@@ -123,13 +123,7 @@ CREATE TABLE IF NOT EXISTS \"$tie.annexName\" (
     $tie.positingColumnName $schema.metadata.positingRange not null,
     $tie.positorColumnName $schema.metadata.positorRange not null,
     $tie.reliabilityColumnName $schema.metadata.reliabilityRange not null,
-     -- *** FIX ME *** --
-    --$tie.reliableColumnName as isnull(cast(
-    --    case
-    --        when $tie.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
-    --        else 1
-    --    end
-    --as tinyint), 1) persisted,
+    $tie.reliableColumnName smallint not null,
     $(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
     constraint fk$tie.annexName foreign key (
         $tie.identityColumnName
@@ -140,5 +134,36 @@ CREATE TABLE IF NOT EXISTS \"$tie.annexName\" (
         $tie.positingColumnName
     )
 )$scheme;
+
+-- This trigger serves to replace the computed column functionality we saw in the MS SQL code
+--$tie.reliableColumnName as isnull(cast(
+--    case
+--        when $tie.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
+--        else 1
+--    end
+--as tinyint), 1) persisted
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION func_$tie.annexName()
+  RETURNS trigger AS
+$$BODY$$
+BEGIN
+    NEW.$tie.reliableColumnName =
+        coalesce(cast(
+            case
+                when $tie.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
+                else 1
+            end
+       as smallint), 1);
+ 
+    RETURN NEW;
+END;
+$$BODY$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER trig_$tie.annexName
+  BEFORE UPDATE
+  ON \"$tie.annexName\"
+  FOR EACH ROW
+  EXECUTE PROCEDURE func_$tie.annexName();
 ~*/
 }
