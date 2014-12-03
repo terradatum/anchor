@@ -27,8 +27,8 @@ while (anchor = schema.nextAnchor()) {
         $(attribute.timeRange)? p.$attribute.changingColumnName,
         a.$attribute.positingColumnName,
         a.$attribute.positorColumnName,
-        a.$attribute.reliabilityColumnName --,
-        --TODO: a.$attribute.reliableColumnName
+        a.$attribute.reliabilityColumnName,
+        a.$attribute.reliableColumnName
     FROM
         \"$attribute.positName\" p
     JOIN
