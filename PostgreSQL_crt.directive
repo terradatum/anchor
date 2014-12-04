@@ -18,7 +18,7 @@ SQL/PostgreSQL/crt/CreateAttributeAssembledViews.js
 #SQL/PostgreSQL/crt/CreateAttributeTriggers.js
 #SQL/PostgreSQL/crt/CreateAnchorTriggers.js
 SQL/PostgreSQL/crt/CreateTies.js
-#SQL/PostgreSQL/crt/CreateTieAssembledViews.js
+SQL/PostgreSQL/crt/CreateTieAssembledViews.js
 #SQL/PostgreSQL/crt/AddTieRestatementConstraints.js
 #SQL/PostgreSQL/crt/CreateTieRewinders.js
 #SQL/PostgreSQL/biz/DropTieBusinessPerspectives.js
