@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS $tie.capsule$.\"$tie.annexName\" (
     $tie.positingColumnName $schema.metadata.positingRange not null,
     $tie.positorColumnName $schema.metadata.positorRange not null,
     $tie.reliabilityColumnName $schema.metadata.reliabilityRange not null,
-    $tie.reliableColumnName smallint not null,
+    $tie.reliableColumnName $schema.reliableColumnType not null,
     $(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
     constraint fk$tie.annexName foreign key (
         $tie.identityColumnName
@@ -148,7 +148,7 @@ BEGIN
                 when $tie.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
                 else 1
             end
-       as smallint), 1);
+       as $schema.reliableColumnType), 1);
  
     RETURN NEW;
 END;

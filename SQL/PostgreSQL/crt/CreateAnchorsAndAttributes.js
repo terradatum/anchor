@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.annexName\" (
     $attribute.positingColumnName $schema.metadata.positingRange not null,
     $attribute.positorColumnName $schema.metadata.positorRange not null,
     $attribute.reliabilityColumnName $schema.metadata.reliabilityRange not null,
-    $attribute.reliableColumnName smallint not null,
+    $attribute.reliableColumnName $schema.reliableColumnType not null,
     $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
     constraint fk$attribute.annexName foreign key (
         $attribute.identityColumnName
@@ -169,7 +169,7 @@ BEGIN
                 when $attribute.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
                 else 1
             end
-       as smallint), 1);
+       as $schema.reliableColumnType), 1);
  
     RETURN NEW;
 END;

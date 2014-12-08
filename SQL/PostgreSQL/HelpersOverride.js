@@ -5,6 +5,9 @@
 **              set some sane defaults that will work for most DBMSs,
 **              and override them on a database-specific basis
 ** Author/Date/Modification:
+**              2014-12-08      Julie Morahan
+**                  Added schema.checksumType, schema.reliableColumnType
+**                  and schema.determineIdentityType()
 **              2014-11-10      Nathan Clayton
 **                Initial file creation - added override for end of
 **                time
@@ -14,6 +17,11 @@
 // greater or less than (respectively) all normal timestamps/dates/times
 schema.EOT = '\'infinity\'::timestamptz'; //End Of Time
 
+// Add hardcoded data types to make them easy to change if we need to in the future
+schema.checksumType = 'varbinary(16)'
+schema.reliableColumnType = 'smallint'
+
+// Custom function to determine valid postgres identity types
 schema.determineIdentityType = function(entity) {
 	switch (entity.identity) {
         case 'smallint': entity.identityGenerator = 'smallserial'; break;
