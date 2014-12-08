@@ -13,3 +13,11 @@
 // PostgreSQL has the concept of -infinity and infinity, which are always
 // greater or less than (respectively) all normal timestamps/dates/times
 schema.EOT = '\'infinity\'::timestamptz'; //End Of Time
+
+schema.determineIdentityType = function(entity) {
+	switch (entity.identity) {
+        case 'smallint': entity.identityGenerator = 'smallserial'; break;
+        case 'bigint': entity.identityGenerator = 'bigserial'; break;
+        default: entity.identityGenerator = 'serial'; break;
+    }
+};

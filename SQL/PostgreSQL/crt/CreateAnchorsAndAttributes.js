@@ -11,12 +11,7 @@
 ~*/
 var anchor;
 while (anchor = schema.nextAnchor()) {
-    if(anchor.isGenerator())
-        switch (anchor.identity) {
-            case 'smallint': anchor.identityGenerator = 'smallserial'; break;
-            case 'bigint': anchor.identityGenerator = 'bigserial'; break;
-            default: anchor.identityGenerator = 'serial'; break;
-        }
+    schema.determineIdentityType(anchor);
 /*~
 -- Anchor table -------------------------------------------------------------------------------------------------------
 -- $anchor.name table (with ${(anchor.attributes ? anchor.attributes.length : 0)}$ attributes)
@@ -31,12 +26,7 @@ CREATE TABLE IF NOT EXISTS $anchor.capsule$.\"$anchor.name\" (
 ~*/
     var knot, attribute;
     while (attribute = anchor.nextAttribute()) {
-        //if(attribute.isGenerator())
-        switch (attribute.identity) {
-            case 'smallint': attribute.identityGenerator = 'smallserial'; break;
-            case 'bigint': attribute.identityGenerator = 'bigserial'; break;
-            default: attribute.identityGenerator = 'serial'; break;
-        }
+        schema.determineIdentityType(attribute);
         if(attribute.isHistorized() && !attribute.isKnotted()) {
 /*~
 -- Historized attribute posit table -----------------------------------------------------------------------------------

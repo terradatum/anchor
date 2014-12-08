@@ -12,12 +12,7 @@ var tie;
 while (tie = schema.nextTie()) {
     if(schema.METADATA)
         tie.metadataDefinition = tie.metadataColumnName + ' ' + schema.metadata.metadataType + ' not null,';
-    //if(tie.isGenerator())
-        switch (tie.identity) {
-            case 'smallint': tie.identityGenerator = 'smallserial'; break;
-            case 'bigint': tie.identityGenerator = 'bigserial'; break;
-            default: tie.identityGenerator = 'serial'; break;
-        }
+    schema.determineIdentityType(tie);
     if(tie.isHistorized() && tie.isKnotted()) {
 /*~
 -- Knotted historized tie table ---------------------------------------------------------------------------------------

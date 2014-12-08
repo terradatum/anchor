@@ -12,13 +12,7 @@
 var knot;
 
 while (knot = schema.nextKnot()) {
-    if(knot.isGenerator()) {
-        switch (knot.identity) {
-            case 'smallint': knot.identityGenerator = 'smallserial'; break;
-            case 'bigint': knot.identityGenerator = 'bigserial'; break;
-            default: knot.identityGenerator = 'serial'; break;
-        }
-    }
+    schema.determineIdentityType(knot);
 /*~
 -- Knot table ---------------------------------------------------------------------------------------------------------
 -- $knot.name table
