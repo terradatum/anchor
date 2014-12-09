@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     ) references $anchor.capsule$.\"$anchor.name\"($anchor.identityColumnName),
     constraint fk_K_$attribute.positName foreign key (
         $attribute.knotReferenceName
-    ) references $knot.capsule$.\"$knot.name\"(\"$knot.identityColumnName\"),
+    ) references $knot.capsule$.\"$knot.name\"($knot.identityColumnName),
     constraint pk$attribute.positName primary key (
         $attribute.identityColumnName
     ),
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     ) references $anchor.capsule$.\"$anchor.name\"($anchor.identityColumnName),
     constraint fk_K_$attribute.positName foreign key (
         $attribute.knotReferenceName
-    ) references $knot.capsule$.\"$knot.name\"(\"$knot.identityColumnName\"),
+    ) references $knot.capsule$.\"$knot.name\"($knot.identityColumnName),
     constraint pk$attribute.positName primary key (
         $attribute.identityColumnName
     ),

@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS $tie.capsule$.\"$tie.positName\" (
 /*~
     constraint ${(tie.positName + '_fk' + role.name)}$ foreign key (
         $role.columnName
-    ) references $(role.anchor)? $role.anchor.capsule\.\"$role.anchor.name\"($role.anchor.identityColumnName), : $role.knot.capsule$.\"$role.knot.name\"(\"$role.knot.identityColumnName\"),
+    ) references $(role.anchor)? $role.anchor.capsule\.\"$role.anchor.name\"($role.anchor.identityColumnName), : $role.knot.capsule$.\"$role.knot.name\"($role.knot.identityColumnName),
  ~*/
     }
     // one-to-one and we need additional constraints

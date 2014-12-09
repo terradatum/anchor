@@ -18,17 +18,17 @@ while (knot = schema.nextKnot()) {
 -- $knot.name table
 -----------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS $knot.capsule$.\"$knot.name\" (
-    \"$knot.identityColumnName\" $(knot.isGenerator())? $knot.identityGenerator not null, : $knot.identity not null,
-    \"$knot.valueColumnName\" $knot.dataRange not null,
+    $knot.identityColumnName $(knot.isGenerator())? $knot.identityGenerator not null, : $knot.identity not null,
+    $knot.valueColumnName $knot.dataRange not null,
     $(knot.hasChecksum())? \"$knot.checksumColumnName\" bytea,
-    $(schema.METADATA)? \"$knot.metadataColumnName\" $schema.metadata.metadataType not null,
-    constraint \"pk$knot.name\" primary key (
-        \"$knot.identityColumnName\"
+    $(schema.METADATA)? $knot.metadataColumnName $schema.metadata.metadataType not null,
+    constraint pk$knot.name primary key (
+        $knot.identityColumnName
     ),
-    constraint \"uq$knot.name\" unique (
-        $(knot.hasChecksum())? \"$knot.checksumColumnName\" : \"$knot.valueColumnName\"
+    constraint uq$knot.name unique (
+        $(knot.hasChecksum())? $knot.checksumColumnName : $knot.valueColumnName
     )
 );
-ALTER TABLE IF EXISTS ONLY $knot.capsule$.\"$knot.name\" CLUSTER ON \"pk$knot.name\";
+ALTER TABLE IF EXISTS ONLY $knot.capsule$.\"$knot.name\" CLUSTER ON pk$knot.name;
 ~*/
 }
