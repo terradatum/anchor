@@ -9,7 +9,7 @@ SQL/PostgreSQL/DatabaseInitialization.js
 SQL/PostgreSQL/crt/CreateKnots.js
 SQL/PostgreSQL/crt/CreateAnchorsAndAttributes.js
 SQL/PostgreSQL/crt/CreateAttributeAssembledViews.js
-#SQL/PostgreSQL/crt/CreateAttributeRewinders.js
+SQL/PostgreSQL/crt/CreateAttributeRewinders.js
 #SQL/PostgreSQL/crt/AddAttributeRestatementConstraints.js
 #SQL/PostgreSQL/biz/DropAnchorBusinessPerspectives.js
 #SQL/PostgreSQL/crt/CreateAnchorPerspectives.js
