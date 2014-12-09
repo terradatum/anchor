@@ -17,7 +17,7 @@ var anchor;
 while (anchor = schema.nextAnchor()) {
     var knot, attribute;
     while (attribute = anchor.nextAttribute()) {
-        schema.determineIdentityType(attribute);
+        schema.setIdentityGenerator(attribute);
         if(attribute.isHistorized()) {
 /*~
 -- Attribute posit rewinder -------------------------------------------------------------------------------------------

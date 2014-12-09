@@ -12,7 +12,7 @@
 var knot;
 
 while (knot = schema.nextKnot()) {
-    schema.determineIdentityType(knot);
+    schema.setIdentityGenerator(knot);
 /*~
 -- Knot table ---------------------------------------------------------------------------------------------------------
 -- $knot.name table

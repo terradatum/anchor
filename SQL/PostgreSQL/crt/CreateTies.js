@@ -12,7 +12,7 @@ var tie;
 while (tie = schema.nextTie()) {
     if(schema.METADATA)
         tie.metadataDefinition = tie.metadataColumnName + ' ' + schema.metadata.metadataType + ' not null,';
-    schema.determineIdentityType(tie);
+    schema.setIdentityGenerator(tie);
     if(tie.isHistorized() && tie.isKnotted()) {
 /*~
 -- Knotted historized tie table ---------------------------------------------------------------------------------------

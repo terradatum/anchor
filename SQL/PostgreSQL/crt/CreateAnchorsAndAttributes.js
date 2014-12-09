@@ -11,7 +11,7 @@
 ~*/
 var anchor;
 while (anchor = schema.nextAnchor()) {
-    schema.determineIdentityType(anchor);
+    schema.setIdentityGenerator(anchor);
 /*~
 -- Anchor table -------------------------------------------------------------------------------------------------------
 -- $anchor.name table (with ${(anchor.attributes ? anchor.attributes.length : 0)}$ attributes)
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS $anchor.capsule$.\"$anchor.name\" (
 ~*/
     var knot, attribute;
     while (attribute = anchor.nextAttribute()) {
-        schema.determineIdentityType(attribute);
+        schema.setIdentityGenerator(attribute);
         if(attribute.isHistorized() && !attribute.isKnotted()) {
 /*~
 -- Historized attribute posit table -----------------------------------------------------------------------------------
