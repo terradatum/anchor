@@ -49,9 +49,9 @@ if(restatements) {
         \"posit\" $anchor.identity,
         \"posited\" $schema.metadata.positingRange,
         \"positor\" $schema.metadata.positorRange,
-        \"reliable\" tinyint
+        \"reliable\" smallint
     )
-    RETURNS tinyint AS
+    RETURNS smallint AS
     $$BODY$$
     DECLARE id $anchor.identity;
     DECLARE value $valueType;
@@ -74,7 +74,7 @@ if(restatements) {
                 value
             WHERE
                 value = (
-                    SELECT TOP 1
+                    SELECT
                         pre.$valueColumn
                     FROM
                         $attribute.capsule$.r$attribute.name(
@@ -91,13 +91,14 @@ if(restatements) {
                     ORDER BY
                         pre.$attribute.changingColumnName DESC,
                         pre.$attribute.positingColumnName DESC
+                    LIMIT 1
                 )
         ) OR EXISTS (
             SELECT
                 value
             WHERE
                 value = (        
-                    SELECT TOP 1
+                    SELECT
                         fol.$valueColumn
                     FROM
                         $attribute.capsule$.f$attribute.name(
@@ -114,6 +115,7 @@ if(restatements) {
                     ORDER BY
                         fol.$attribute.changingColumnName ASC,
                         fol.$attribute.positingColumnName DESC
+                    LIMIT 1
                 )
         )
         THEN 1
