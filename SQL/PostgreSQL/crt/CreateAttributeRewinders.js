@@ -23,7 +23,7 @@ while (anchor = schema.nextAnchor()) {
 -- Attribute posit rewinder -------------------------------------------------------------------------------------------
 -- r$attribute.positName rewinding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.r$attribute.positName (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.positName\" (
         \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
@@ -42,7 +42,7 @@ BEGIN
         $attribute.valueColumnName,
         $attribute.changingColumnName
     FROM
-        $attribute.capsule$.$attribute.positName
+        \"$attribute.capsule$\".\"$attribute.positName\"
     WHERE
         $attribute.changingColumnName <= changingTimepoint;
 END;
@@ -52,7 +52,7 @@ LANGUAGE plpgsql;
 -- Attribute posit forwarder ------------------------------------------------------------------------------------------
 -- f$attribute.positName forwarding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.f$attribute.positName (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.positName\" (
         \"changingTimepoint\" $attribute.timeRange = $schema.EOT
     )
     RETURNS TABLE (
@@ -71,7 +71,7 @@ BEGIN
         $attribute.valueColumnName,
         $attribute.changingColumnName
     FROM
-        $attribute.capsule$.$attribute.positName
+        \"$attribute.capsule$\".\"$attribute.positName\"
     WHERE
         $attribute.changingColumnName > changingTimepoint;
 END;
@@ -82,7 +82,7 @@ LANGUAGE plpgsql;
 -- Attribute annex rewinder -------------------------------------------------------------------------------------------
 -- r$attribute.annexName rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.r$attribute.annexName (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
@@ -103,7 +103,7 @@ BEGIN
         $attribute.reliabilityColumnName,
         $attribute.reliableColumnName
     FROM
-        $attribute.capsule$.$attribute.annexName
+        \"$attribute.capsule$\".\"$attribute.annexName\"
     WHERE
         $attribute.positingColumnName <= positingTimepoint;
 END;
@@ -113,7 +113,7 @@ LANGUAGE plpgsql;
 -- Attribute assembled rewinder ---------------------------------------------------------------------------------------
 -- r$attribute.name rewinding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.r$attribute.name (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
         \"positor\" $schema.metadata.positorRange DEFAULT 0,
         \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
@@ -144,9 +144,9 @@ BEGIN
         p.$attribute.valueColumnName,
         p.$attribute.changingColumnName
     FROM
-        $attribute.capsule$.r$attribute.positName(changingTimepoint) p
+        \"$attribute.capsule$\".\"r$attribute.positName\"(changingTimepoint) p
     JOIN
-        $attribute.capsule$.r$attribute.annexName(positingTimepoint) a
+        \"$attribute.capsule$\".\"r$attribute.annexName\"(positingTimepoint) a
     ON
         a.$attribute.identityColumnName = p.$attribute.identityColumnName
     AND
@@ -155,7 +155,7 @@ BEGIN
         a.$attribute.positingColumnName = (
             SELECT sub.$attribute.positingColumnName
             FROM
-                $attribute.capsule$.r$attribute.annexName(positingTimepoint) sub
+                \"$attribute.capsule$\".\"r$attribute.annexName\"(positingTimepoint) sub
             WHERE
                 sub.$attribute.identityColumnName = p.$attribute.identityColumnName
             AND
@@ -171,7 +171,7 @@ LANGUAGE plpgsql;
 -- Attribute assembled forwarder --------------------------------------------------------------------------------------
 -- f$attribute.name forwarding over changing and rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.f$attribute.name (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.name\" (
         \"positor\" $schema.metadata.positorRange DEFAULT 0,
         \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
@@ -202,9 +202,9 @@ BEGIN
         p.$attribute.valueColumnName,
         p.$attribute.changingColumnName
     FROM
-        $attribute.capsule$.f$attribute.positName(changingTimepoint) p
+        \"$attribute.capsule$\".\"f$attribute.positName\"(changingTimepoint) p
     JOIN
-        $attribute.capsule$.r$attribute.annexName(positingTimepoint) a
+        \"$attribute.capsule$\".\"r$attribute.annexName\"(positingTimepoint) a
     ON
         a.$attribute.identityColumnName = p.$attribute.identityColumnName
     AND
@@ -213,7 +213,7 @@ BEGIN
         a.$attribute.positingColumnName = (
             SELECT sub.$attribute.positingColumnName
             FROM
-                $attribute.capsule$.r$attribute.annexName(positingTimepoint) sub
+                \"$attribute.capsule$\".\"r$attribute.annexName\"(positingTimepoint) sub
             WHERE
                 sub.$attribute.identityColumnName = p.$attribute.identityColumnName
             AND
@@ -229,7 +229,7 @@ LANGUAGE plpgsql;
 -- Attribute previous value -------------------------------------------------------------------------------------------
 -- pre$attribute.name function for getting previous value
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.pre$attribute.name (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"pre$attribute.name\" (
         \"id\" $anchor.identity,
         \"positor\" $schema.metadata.positorRange DEFAULT 0,
         \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
@@ -241,7 +241,7 @@ $$BODY$$
 BEGIN
     SELECT $(attribute.hasChecksum())? pre.$attribute.checksumColumnName : pre.$attribute.valueColumnName
     FROM
-        $attribute.capsule$.r$attribute.name(
+        \"$attribute.capsule$\".\"r$attribute.name\"(
             positor,
             changingTimepoint,
             positingTimepoint
@@ -263,7 +263,7 @@ LANGUAGE plpgsql;
 -- Attribute following value ------------------------------------------------------------------------------------------
 -- fol$attribute.name function for getting following value
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.fol$attribute.name (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"fol$attribute.name\" (
         \"id\" $anchor.identity,
         \"positor\" $schema.metadata.positorRange DEFAULT 0,
         \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
@@ -275,7 +275,7 @@ $$BODY$$
 BEGIN
     SELECT $(attribute.hasChecksum())? fol.$attribute.checksumColumnName : fol.$attribute.valueColumnName
     FROM
-        $attribute.capsule$.f$attribute.name(
+        \"$attribute.capsule$\".\"f$attribute.name\"(
             positor,
             changingTimepoint,
             positingTimepoint
@@ -300,7 +300,7 @@ LANGUAGE plpgsql;
 -- Attribute annex rewinder -------------------------------------------------------------------------------------------
 -- r$attribute.annexName rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.r$attribute.annexName (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
@@ -321,7 +321,7 @@ BEGIN
         $attribute.reliabilityColumnName,
         $attribute.reliableColumnName
     FROM
-        $attribute.capsule$.$attribute.annexName
+        \"$attribute.capsule$\".\"$attribute.annexName\"
     WHERE
         $attribute.positingColumnName <= positingTimepoint;
 END;
@@ -331,7 +331,7 @@ LANGUAGE plpgsql;
 -- Attribute assembled rewinder ---------------------------------------------------------------------------------------
 -- r$attribute.name rewinding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.r$attribute.name (
+CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
         \"positor\" $schema.metadata.positorRange DEFAULT 0,
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
     )
@@ -359,9 +359,9 @@ BEGIN
         $(attribute.hasChecksum())? p.$attribute.checksumColumnName,
         p.$attribute.valueColumnName
     FROM
-        $attribute.capsule$.$attribute.positName p
+        \"$attribute.capsule$\".\"$attribute.positName\" p
     JOIN
-        $attribute.capsule$.r$attribute.annexName(positingTimepoint) a
+        \"$attribute.capsule$\".\"r$attribute.annexName\"(positingTimepoint) a
     ON
         a.$attribute.identityColumnName = p.$attribute.identityColumnName
     AND
@@ -370,7 +370,7 @@ BEGIN
         a.$attribute.positingColumnName = (
             SELECT sub.$attribute.positingColumnName
             FROM
-                $attribute.capsule$.r$attribute.annexName(positingTimepoint) sub
+                \"$attribute.capsule$\".\"r$attribute.annexName\"(positingTimepoint) sub
             WHERE
                 sub.$attribute.identityColumnName = p.$attribute.identityColumnName
             AND

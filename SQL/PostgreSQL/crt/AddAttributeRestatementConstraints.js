@@ -45,7 +45,7 @@ if(restatements) {
 -- rf$attribute.name restatement finder, also used by the insert and update triggers for idempotent attributes
 -- rc$attribute.name restatement constraint (available only in attributes that cannot have restatements)
 -----------------------------------------------------------------------------------------------------------------------
-    CREATE OR REPLACE FUNCTION $attribute.capsule$.rf$attribute.name (
+    CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"rf$attribute.name\" (
         \"posit\" $anchor.identity,
         \"posited\" $schema.metadata.positingRange,
         \"positor\" $schema.metadata.positorRange,
@@ -62,7 +62,7 @@ if(restatements) {
         value = $valueColumn,
         changed = $attribute.changingColumnName
     FROM
-        $attribute.capsule$.$attribute.positName
+        \"$attribute.capsule$\".\"$attribute.positName\""
     WHERE
         $attribute.identityColumnName = posit;
     RETURN (
@@ -77,7 +77,7 @@ if(restatements) {
                     SELECT
                         pre.$valueColumn
                     FROM
-                        $attribute.capsule$.r$attribute.name(
+                        \"$attribute.capsule$\".\"r$attribute.name\"(
                             positor,
                             changed,
                             posited
@@ -101,7 +101,7 @@ if(restatements) {
                     SELECT
                         fol.$valueColumn
                     FROM
-                        $attribute.capsule$.f$attribute.name(
+                        \"$attribute.capsule$\".\"f$attribute.name\"(
                             positor,
                             changed,
                             posited
@@ -130,7 +130,7 @@ if(restatements) {
 /*~
     ALTER TABLE $attribute.capsule$.$attribute.annexName
     ADD CONSTRAINT rc$attribute.annexName CHECK (
-        $attribute.capsule$.rf$attribute.name (
+        \"$attribute.capsule$\".\"rf$attribute.name\" (
             $attribute.identityColumnName,
             $attribute.positingColumnName,
             $attribute.positorColumnName,

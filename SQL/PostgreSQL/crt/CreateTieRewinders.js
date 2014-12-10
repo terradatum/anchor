@@ -20,7 +20,7 @@ while (tie = schema.nextTie()) {
 -- Tie posit rewinder -------------------------------------------------------------------------------------------------
 -- r$tie.positName rewinding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.r$tie.positName (
+CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.positName\" (
         \"changingTimepoint\" $tie.timeRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
@@ -57,7 +57,7 @@ LANGUAGE plpgsql;
 -- Tie posit forwarder ------------------------------------------------------------------------------------------------
 -- f$tie.positName forwarding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.f$tie.positName (
+CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"f$tie.positName\" (
         \"changingTimepoint\" $tie.timeRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
@@ -96,7 +96,7 @@ LANGUAGE plpgsql;
 -- Tie annex rewinder -------------------------------------------------------------------------------------------------
 -- r$tie.annexName rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.r$tie.annexName (
+CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.annexName\" (
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
@@ -127,7 +127,7 @@ LANGUAGE plpgsql;
 -- Tie assembled rewinder ---------------------------------------------------------------------------------------------
 -- r$tie.name rewinding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.r$tie.name (
+CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.name\" (
         \"positor\" $schema.metadata.positorRange DEFAULT 0,
         $(tie.isHistorized())? \"changingTimepoint\" $tie.timeRange DEFAULT $schema.EOT,
         \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
@@ -193,7 +193,7 @@ LANGUAGE plpgsql;
 -- Tie assembled forwarder --------------------------------------------------------------------------------------------
 -- f$tie.name forwarding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.f$tie.name (
+CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"f$tie.name\" (
         \"positor\" $schema.metadata.positorRange = 0,
         $(tie.isHistorized())? \"changingTimepoint\" $tie.timeRange = $schema.EOT,
         \"positingTimepoint\" $schema.metadata.positingRange = $schema.EOT
