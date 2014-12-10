@@ -49,7 +49,7 @@ if(restatements) {
         \"posit\" $anchor.identity,
         \"posited\" $schema.metadata.positingRange,
         \"positor\" $schema.metadata.positorRange,
-        \"reliable\" smallint
+        \"reliable\" $schema.reliableColumnType
     )
     RETURNS smallint AS
     $$BODY$$
