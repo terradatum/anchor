@@ -155,7 +155,7 @@ END;
 $$BODY$$
 LANGUAGE plpgsql;
 
-DROP TRIGGER trig_$tie.annexName ON $tie.capsule$.\"$tie.annexName\";
+DROP TRIGGER IF EXISTS trig_$tie.annexName ON $tie.capsule$.\"$tie.annexName\";
 
 CREATE TRIGGER trig_$tie.annexName
   BEFORE UPDATE
