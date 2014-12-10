@@ -24,7 +24,7 @@ while (anchor = schema.nextAnchor()) {
 -- r$attribute.positName rewinding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.positName\" (
-        \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT
+        changingTimepoint $attribute.timeRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $attribute.identityColumnName $attribute.identity,
@@ -33,8 +33,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.positName\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $attribute.identityColumnName,
         $attribute.anchorReferenceName,
@@ -45,15 +44,14 @@ BEGIN
         \"$attribute.capsule$\".\"$attribute.positName\"
     WHERE
         $attribute.changingColumnName <= changingTimepoint;
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 
 -- Attribute posit forwarder ------------------------------------------------------------------------------------------
 -- f$attribute.positName forwarding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.positName\" (
-        \"changingTimepoint\" $attribute.timeRange = $schema.EOT
+        changingTimepoint $attribute.timeRange = $schema.EOT
     )
     RETURNS TABLE (
         $attribute.identityColumnName $attribute.identity,
@@ -62,8 +60,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.positName\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $attribute.identityColumnName,
         $attribute.anchorReferenceName,
@@ -74,16 +71,15 @@ BEGIN
         \"$attribute.capsule$\".\"$attribute.positName\"
     WHERE
         $attribute.changingColumnName > changingTimepoint;
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
     
 
 -- Attribute annex rewinder -------------------------------------------------------------------------------------------
 -- r$attribute.annexName rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
@@ -93,8 +89,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
         $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
         $attribute.reliableColumnName $schema.reliableColumnType
     ) AS 
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $(schema.METADATA)? $attribute.metadataColumnName,
         $attribute.identityColumnName,
@@ -106,17 +101,16 @@ BEGIN
         \"$attribute.capsule$\".\"$attribute.annexName\"
     WHERE
         $attribute.positingColumnName <= positingTimepoint;
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 
 -- Attribute assembled rewinder ---------------------------------------------------------------------------------------
 -- r$attribute.name rewinding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
-        \"positor\" $schema.metadata.positorRange DEFAULT 0,
-        \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        positor $schema.metadata.positorRange DEFAULT 0,
+        changingTimepoint $attribute.timeRange DEFAULT $schema.EOT,
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
@@ -130,8 +124,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
         p.$attribute.identityColumnName,
@@ -164,17 +157,16 @@ BEGIN
                 sub.$attribute.positingColumnName DESC
             LIMIT 1
         );
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 
 -- Attribute assembled forwarder --------------------------------------------------------------------------------------
 -- f$attribute.name forwarding over changing and rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.name\" (
-        \"positor\" $schema.metadata.positorRange DEFAULT 0,
-        \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        positor $schema.metadata.positorRange DEFAULT 0,
+        changingTimepoint $attribute.timeRange DEFAULT $schema.EOT,
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
@@ -188,8 +180,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.name\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
         p.$attribute.identityColumnName,
@@ -222,23 +213,21 @@ BEGIN
                 sub.$attribute.positingColumnName DESC
             LIMIT 1
         );
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 
 -- Attribute previous value -------------------------------------------------------------------------------------------
 -- pre$attribute.name function for getting previous value
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"pre$attribute.name\" (
-        \"id\" $anchor.identity,
-        \"positor\" $schema.metadata.positorRange DEFAULT 0,
-        \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        id $anchor.identity,
+        positor $schema.metadata.positorRange DEFAULT 0,
+        changingTimepoint $attribute.timeRange DEFAULT $schema.EOT,
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT $(attribute.hasChecksum())? pre.$attribute.checksumColumnName : pre.$attribute.valueColumnName
     FROM
         \"$attribute.capsule$\".\"r$attribute.name\"(
@@ -256,23 +245,21 @@ BEGIN
         pre.$attribute.changingColumnName DESC,
         pre.$attribute.positingColumnName DESC
     LIMIT 1;
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 
 -- Attribute following value ------------------------------------------------------------------------------------------
 -- fol$attribute.name function for getting following value
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"fol$attribute.name\" (
-        \"id\" $anchor.identity,
-        \"positor\" $schema.metadata.positorRange DEFAULT 0,
-        \"changingTimepoint\" $attribute.timeRange DEFAULT $schema.EOT,
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        id $anchor.identity,
+        positor $schema.metadata.positorRange DEFAULT 0,
+        changingTimepoint $attribute.timeRange DEFAULT $schema.EOT,
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT $(attribute.hasChecksum())? fol.$attribute.checksumColumnName : fol.$attribute.valueColumnName
     FROM
         \"$attribute.capsule$\".\"f$attribute.name\"(
@@ -290,9 +277,8 @@ BEGIN
         fol.$attribute.changingColumnName ASC,
         fol.$attribute.positingColumnName DESC
     LIMIT 1;
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 ~*/
         }
         else {
@@ -301,7 +287,7 @@ LANGUAGE plpgsql;
 -- r$attribute.annexName rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
@@ -311,8 +297,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
         $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
         $attribute.reliableColumnName $schema.reliableColumnType
     ) AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $(schema.METADATA)? $attribute.metadataColumnName,
         $attribute.identityColumnName,
@@ -324,16 +309,15 @@ BEGIN
         \"$attribute.capsule$\".\"$attribute.annexName\"
     WHERE
         $attribute.positingColumnName <= positingTimepoint;
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 
 -- Attribute assembled rewinder ---------------------------------------------------------------------------------------
 -- r$attribute.name rewinding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
-        \"positor\" $schema.metadata.positorRange DEFAULT 0,
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+        positor $schema.metadata.positorRange DEFAULT 0,
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
@@ -346,8 +330,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
         $(attribute.hasChecksum())? $attribute.checksumColumnName $schema.checksumType,
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     ) AS
-$$BODY$$
-BEGIN
+$$$$
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
         p.$attribute.identityColumnName,
@@ -379,9 +362,8 @@ BEGIN
                 sub.$attribute.positingColumnName DESC
             LIMIT 1
         );
-END;
-$$BODY$$
-LANGUAGE plpgsql;
+$$$$
+LANGUAGE SQL;
 ~*/
         }
 
