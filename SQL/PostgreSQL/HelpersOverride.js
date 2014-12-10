@@ -6,8 +6,8 @@
 **              and override them on a database-specific basis
 ** Author/Date/Modification:
 **              2014-12-08      Julie Morahan
-**                  Added schema.checksumType, schema.reliableColumnType
-**                  and schema.setIdentityGenerator()
+**                Added schema.checksumType, schema.reliableColumnType
+**                and schema.setIdentityGenerator()
 **              2014-11-10      Nathan Clayton
 **                Initial file creation - added override for end of
 **                time
