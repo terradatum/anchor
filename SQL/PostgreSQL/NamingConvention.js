@@ -14,6 +14,17 @@ schema.metadata.identitySuffix = schema.metadata.identitySuffix || 'id';
 schema.metadata.equivalentSuffix = schema.metadata.equivalentSuffix || 'eq';
 schema.metadata.checksumSuffix = schema.metadata.checksumSuffix || 'ck';
 
+// Custom function to adhere to postgres identifier limit of 63 chars.  
+// Truncate to 50 characters because that leaves room for the suffix that is appended.
+var checkAndAdjustIdLength = function(id) {
+    if(id.length > 50) {
+        console.log("More than 50 chars: " + id);
+        return id.substr(0, 50);
+    }
+    return id;
+};
+
+
 var knot;
 while (knot = schema.nextKnot()) {
     knot.name = knot.mnemonic + D + knot.descriptor;
@@ -175,7 +186,7 @@ while (tie = schema.nextTie()) {
             bName += D;
         }
     }
-    tie.name = name;
+    tie.name = checkAndAdjustIdLength(name);
     tie.businessName = bName;
     tie.positName = tie.name + D + schema.metadata.positSuffix;
     tie.annexName = tie.name + D + schema.metadata.annexSuffix;
