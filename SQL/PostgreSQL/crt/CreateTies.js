@@ -155,6 +155,8 @@ END;
 $$BODY$$
 LANGUAGE plpgsql;
 
+DROP TRIGGER trig_$tie.annexName ON $tie.capsule$.\"$tie.annexName\";
+
 CREATE TRIGGER trig_$tie.annexName
   BEFORE UPDATE
   ON $tie.capsule$.\"$tie.annexName\"

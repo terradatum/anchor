@@ -12,11 +12,24 @@ CREATE TABLE IF NOT EXISTS $schema.metadata.encapsulation\.\"_$schema.metadata.p
         $schema.metadata.positorSuffix
     )
 );
-INSERT INTO $schema.metadata.encapsulation\.\"_$schema.metadata.positorSuffix\"" (
-    $schema.metadata.positorSuffix
-)
-VALUES (
-    0 -- the default positor
-);
+
+DO $$$$
+BEGIN
+    IF NOT EXISTS(
+        SELECT $schema.metadata.positorSuffix
+        FROM $schema.metadata.encapsulation\.\"_$schema.metadata.positorSuffix\""
+        WHERE $schema.metadata.positorSuffix = 0
+    )
+    THEN
+        INSERT INTO $schema.metadata.encapsulation\.\"_$schema.metadata.positorSuffix\"" (
+            $schema.metadata.positorSuffix
+        )
+        VALUES (
+            0 -- the default positor
+        );
+    END IF;
+END
+$$$$ LANGUAGE plpgsql;
+
 
 ~*/

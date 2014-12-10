@@ -176,6 +176,8 @@ END;
 $$BODY$$
 LANGUAGE plpgsql;
 
+DROP TRIGGER trig_$attribute.annexName ON $attribute.capsule$.\"$attribute.annexName\";
+
 CREATE TRIGGER trig_$attribute.annexName
   BEFORE UPDATE
   ON $attribute.capsule$.\"$attribute.annexName\"
