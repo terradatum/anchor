@@ -5,14 +5,14 @@ SQL/PostgreSQL/NamingConvention.js
 SQL/PostgreSQL/DatabaseInitialization.js
 #SQL/PostgreSQL/clr/Anchor.js
 #SQL/PostgreSQL/crt/SetupPositorPartitioning.js
-#SQL/PostgreSQL/crt/CreatePositorAndDefault.js
+SQL/PostgreSQL/crt/CreatePositorAndDefault.js
 SQL/PostgreSQL/crt/CreateKnots.js
 SQL/PostgreSQL/crt/CreateAnchorsAndAttributes.js
 SQL/PostgreSQL/crt/CreateAttributeAssembledViews.js
 SQL/PostgreSQL/crt/CreateAttributeRewinders.js
 SQL/PostgreSQL/crt/AddAttributeRestatementConstraints.js
 #SQL/PostgreSQL/biz/DropAnchorBusinessPerspectives.js
-#SQL/PostgreSQL/crt/CreateAnchorPerspectives.js
+##SQL/PostgreSQL/crt/CreateAnchorPerspectives.js
 #SQL/PostgreSQL/biz/CreateAnchorBusinessPerspectives.js
 #SQL/PostgreSQL/crt/CreateKeyGenerators.js
 #SQL/PostgreSQL/crt/CreateAttributeTriggers.js

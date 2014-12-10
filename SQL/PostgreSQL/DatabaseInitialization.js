@@ -6,22 +6,23 @@
 --
 --------------------------------------------------------------------------------
 
--- Note that in PostgreSQL 9.3 the IF NOT EXISTS syntax is available so that
--- at which time this can be simplified to simple read
--- CREATE SCHEMA IF NOT EXISTS $schema.metadata.encapsulation;
-DO $$$$
-BEGIN
+CREATE SCHEMA IF NOT EXISTS $schema.metadata.encapsulation;
 
-    IF NOT EXISTS(
-        SELECT schema_name
-          FROM information_schema.schemata
-          WHERE schema_name = '$schema.metadata.encapsulation'
-      )
-    THEN
-      CREATE SCHEMA $schema.metadata.encapsulation;
-    END IF;
+-- Note that prior to PostgreSQL 9.3 the IF NOT EXISTS syntax was not available such that
+-- something like this was needed:
+-- DO $$$$
+-- BEGIN
 
-END
-$$$$;
+--     IF NOT EXISTS(
+--         SELECT schema_name
+--           FROM information_schema.schemata
+--           WHERE schema_name = '$schema.metadata.encapsulation'
+--       )
+--     THEN
+--       CREATE SCHEMA $schema.metadata.encapsulation;
+--     END IF;
+
+-- END
+-- $$$$;
 
 ~*/
