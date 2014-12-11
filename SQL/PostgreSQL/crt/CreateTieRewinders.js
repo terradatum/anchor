@@ -20,8 +20,8 @@ while (tie = schema.nextTie()) {
 -- Tie posit rewinder -------------------------------------------------------------------------------------------------
 -- r$tie.positName rewinding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.positName\" (
-        \"changingTimepoint\" $tie.timeRange DEFAULT $schema.EOT
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"r$tie.positName\" (
+        changingTimepoint $tie.timeRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $tie.identityColumnName $tie.identity,
@@ -35,7 +35,6 @@ CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.positName\" (
         $tie.changingColumnName $tie.timeRange
     ) AS
 $$BODY$$
-BEGIN
     SELECT
         $tie.identityColumnName,
 ~*/
@@ -47,18 +46,17 @@ BEGIN
 /*~
         $tie.changingColumnName
     FROM
-        $tie.capsule$.$tie.positName
+        $tie.capsule$.\"$tie.positName\"
     WHERE
         $tie.changingColumnName <= changingTimepoint;
-END;
 $$BODY$$
-LANGUAGE plpgsql;
+LANGUAGE SQL;
 
 -- Tie posit forwarder ------------------------------------------------------------------------------------------------
 -- f$tie.positName forwarding over changing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"f$tie.positName\" (
-        \"changingTimepoint\" $tie.timeRange DEFAULT $schema.EOT
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"f$tie.positName\" (
+        changingTimepoint $tie.timeRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $tie.identityColumnName $tie.identity,
@@ -72,7 +70,6 @@ CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"f$tie.positName\" (
         $tie.changingColumnName $tie.timeRange
     ) AS
 $$BODY$$
-BEGIN
     SELECT
         $tie.identityColumnName,
 ~*/
@@ -84,20 +81,19 @@ BEGIN
 /*~
         $tie.changingColumnName
     FROM
-        $tie.capsule$.$tie.positName
+        $tie.capsule$.\"$tie.positName\"
     WHERE
         $tie.changingColumnName > changingTimepoint;
-END;
 $$BODY$$
-LANGUAGE plpgsql;
+LANGUAGE SQL;
 ~*/
     }
 /*~
 -- Tie annex rewinder -------------------------------------------------------------------------------------------------
 -- r$tie.annexName rewinding over positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.annexName\" (
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"r$tie.annexName\" (
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType,
@@ -108,7 +104,6 @@ CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.annexName\" (
         $tie.reliableColumnName $schema.reliableColumnType
     ) AS
 $$BODY$$
-BEGIN
     SELECT
         $(schema.METADATA)? $tie.metadataColumnName,
         $tie.identityColumnName,
@@ -117,20 +112,19 @@ BEGIN
         $tie.reliabilityColumnName,
         $tie.reliableColumnName
     FROM
-        $tie.capsule$.$tie.annexName
+        $tie.capsule$.\"$tie.annexName\"
     WHERE
         $tie.positingColumnName <= positingTimepoint;
-END;
 $$BODY$$
-LANGUAGE plpgsql;
+LANGUAGE SQL;
 
 -- Tie assembled rewinder ---------------------------------------------------------------------------------------------
 -- r$tie.name rewinding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.name\" (
-        \"positor\" $schema.metadata.positorRange DEFAULT 0,
-        $(tie.isHistorized())? \"changingTimepoint\" $tie.timeRange DEFAULT $schema.EOT,
-        \"positingTimepoint\" $schema.metadata.positingRange DEFAULT $schema.EOT
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"r$tie.name\" (
+        positor $schema.metadata.positorRange DEFAULT 0,
+        $(tie.isHistorized())? changingTimepoint $tie.timeRange DEFAULT $schema.EOT,
+        positingTimepoint $schema.metadata.positingRange DEFAULT $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType,
@@ -149,7 +143,6 @@ CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"r$tie.name\" (
         $tie.reliableColumnName $schema.reliableColumnType
     ) AS
 $$BODY$$
-BEGIN
     SELECT
         $(schema.METADATA)? a.$tie.metadataColumnName,
         p.$tie.identityColumnName,
@@ -166,9 +159,9 @@ BEGIN
         a.$tie.reliabilityColumnName,
         a.$tie.reliableColumnName
     FROM
-        $(tie.isHistorized())? $tie.capsule$.r$tie.positName(changingTimepoint) p : $tie.capsule$.$tie.positName p
+        $(tie.isHistorized())? $tie.capsule$.\"r$tie.positName\"(changingTimepoint) p : $tie.capsule$.\"$tie.positName\" p
     JOIN
-        $tie.capsule$.r$tie.annexName(positingTimepoint) a
+        $tie.capsule$.\"r$tie.annexName\"(positingTimepoint) a
     ON
         a.$tie.identityColumnName = p.$tie.identityColumnName
     AND
@@ -177,7 +170,7 @@ BEGIN
         a.$tie.positingColumnName = (
             SELECT sub.$tie.positingColumnName
             FROM
-                $tie.capsule$.r$tie.annexName(positingTimepoint) sub
+                $tie.capsule$.\"r$tie.annexName\"(positingTimepoint) sub
             WHERE
                 sub.$tie.identityColumnName = p.$tie.identityColumnName
             AND
@@ -186,17 +179,16 @@ BEGIN
                 sub.$tie.positingColumnName DESC
             LIMIT 1
         );
-END;
 $$BODY$$
-LANGUAGE plpgsql;
+LANGUAGE SQL;
 
 -- Tie assembled forwarder --------------------------------------------------------------------------------------------
 -- f$tie.name forwarding over changing and positing time function
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"f$tie.name\" (
-        \"positor\" $schema.metadata.positorRange = 0,
-        $(tie.isHistorized())? \"changingTimepoint\" $tie.timeRange = $schema.EOT,
-        \"positingTimepoint\" $schema.metadata.positingRange = $schema.EOT
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"f$tie.name\" (
+        positor $schema.metadata.positorRange = 0,
+        $(tie.isHistorized())? changingTimepoint $tie.timeRange = $schema.EOT,
+        positingTimepoint $schema.metadata.positingRange = $schema.EOT
     )
     RETURNS TABLE (
         $(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType,
@@ -215,7 +207,6 @@ CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"f$tie.name\" (
         $tie.reliableColumnName $schema.reliableColumnType
     ) AS
 $$BODY$$
-BEGIN
     SELECT
         $(schema.METADATA)? a.$tie.metadataColumnName,
         p.$tie.identityColumnName,
@@ -232,9 +223,9 @@ BEGIN
         a.$tie.reliabilityColumnName,
         a.$tie.reliableColumnName
     FROM
-        $(tie.isHistorized())? $tie.capsule$.f$tie.positName(changingTimepoint) p : $tie.capsule$.$tie.positName p
+        $(tie.isHistorized())? $tie.capsule$.\"f$tie.positName\"(changingTimepoint) p : $tie.capsule$.\"$tie.positName\" p
     JOIN
-        $tie.capsule$.r$tie.annexName(positingTimepoint) a
+        $tie.capsule$.\"r$tie.annexName\"(positingTimepoint) a
     ON
         a.$tie.identityColumnName = p.$tie.identityColumnName
     AND
@@ -243,7 +234,7 @@ BEGIN
         a.$tie.positingColumnName = (
             SELECT sub.$tie.positingColumnName
             FROM
-                $tie.capsule$.r$tie.annexName(positingTimepoint) sub
+                $tie.capsule$.\"r$tie.annexName\"(positingTimepoint) sub
             WHERE
                 sub.$tie.identityColumnName = p.$tie.identityColumnName
             AND
@@ -252,8 +243,7 @@ BEGIN
                 sub.$tie.positingColumnName DESC
             LIMIT 1
         );
-END;
 $$BODY$$
-LANGUAGE plpgsql;
+LANGUAGE SQL;
 ~*/
 }
