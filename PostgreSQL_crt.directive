@@ -22,7 +22,7 @@ SQL/PostgreSQL/crt/CreateTieAssembledViews.js
 #SQL/PostgreSQL/crt/AddTieRestatementConstraints.js
 SQL/PostgreSQL/crt/CreateTieRewinders.js
 #SQL/PostgreSQL/biz/DropTieBusinessPerspectives.js
-SQL/PostgreSQL/crt/CreateTiePerspectives.js
+#SQL/PostgreSQL/crt/CreateTiePerspectives.js
 #SQL/PostgreSQL/biz/CreateTieBusinessPerspectives.js
 #SQL/PostgreSQL/crt/CreateTieTriggers.js
 #SQL/PostgreSQL/crt/CreateAttributeSheetStacks.js
