@@ -10,7 +10,7 @@ CREATE SCHEMA IF NOT EXISTS $schema.metadata.encapsulation;
 
 -- Note that prior to PostgreSQL 9.3 the IF NOT EXISTS syntax was not available such that
 -- something like this was needed:
--- DO $$$$
+-- DO $$BODY$$
 -- BEGIN
 
 --     IF NOT EXISTS(
@@ -23,6 +23,6 @@ CREATE SCHEMA IF NOT EXISTS $schema.metadata.encapsulation;
 --     END IF;
 
 -- END
--- $$$$;
+-- $$BODY$$;
 
 ~*/

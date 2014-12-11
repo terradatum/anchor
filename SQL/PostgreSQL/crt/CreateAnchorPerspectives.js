@@ -76,7 +76,7 @@ RETURNS TABLE (
 ~*/
         }
 /*~
-) AS $$$$
+) AS $$BODY$$
 SELECT
     $anchor.mnemonic\.$anchor.identityColumnName,
     $(schema.METADATA)? $anchor.mnemonic\.$anchor.metadataColumnName,
@@ -150,7 +150,7 @@ ON
             }
         }
 /*~
-$$$$ LANGUAGE SQL;
+$$BODY$$ LANGUAGE SQL;
 
 -- Latest perspective -------------------------------------------------------------------------------------------------
 -- l$anchor.name viewed by the latest available information for all positors (may include future versions)
@@ -207,7 +207,7 @@ RETURNS TABLE (
 ~*/
         }
 /*~
-) AS $$$$
+) AS $$BODY$$
 SELECT
     p.*, 
     1 as $schema.metadata.reliableSuffix,
@@ -219,7 +219,7 @@ CROSS JOIN LATERAL
         v_positor := p.$schema.metadata.positorSuffix,
         v_changingTimepoint := v_changingTimepoint
     ) $anchor.mnemonic;
-$$$$ LANGUAGE SQL;
+$$BODY$$ LANGUAGE SQL;
 
 -- Now perspective ----------------------------------------------------------------------------------------------------
 -- n$anchor.name viewed as it currently is (cannot include future versions)
@@ -282,7 +282,7 @@ RETURNS TABLE (
         }
 /*~
 
-) AS $$$$
+) AS $$BODY$$
 SELECT
     timepoints.inspectedTimepoint,
     $anchor.mnemonic\.*
@@ -318,7 +318,7 @@ CROSS JOIN LATERAL
  WHERE
     $anchor.mnemonic\.$anchor.identityColumnName = timepoints.$anchor.identityColumnName;
 
-$$$$ LANGUAGE SQL;
+$$BODY$$ LANGUAGE SQL;
 
 ~*/
         }

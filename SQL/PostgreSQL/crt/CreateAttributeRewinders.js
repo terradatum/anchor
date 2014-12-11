@@ -33,7 +33,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.positName\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$$$
+$$BODY$$
     SELECT
         $attribute.identityColumnName,
         $attribute.anchorReferenceName,
@@ -44,7 +44,7 @@ $$$$
         \"$attribute.capsule$\".\"$attribute.positName\"
     WHERE
         $attribute.changingColumnName <= changingTimepoint;
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 
 -- Attribute posit forwarder ------------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.positName\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$$$
+$$BODY$$
     SELECT
         $attribute.identityColumnName,
         $attribute.anchorReferenceName,
@@ -71,7 +71,7 @@ $$$$
         \"$attribute.capsule$\".\"$attribute.positName\"
     WHERE
         $attribute.changingColumnName > changingTimepoint;
-$$$$
+$$BODY$$
 LANGUAGE SQL;
     
 
@@ -89,7 +89,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
         $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
         $attribute.reliableColumnName $schema.reliableColumnType
     ) AS 
-$$$$
+$$BODY$$
     SELECT
         $(schema.METADATA)? $attribute.metadataColumnName,
         $attribute.identityColumnName,
@@ -101,7 +101,7 @@ $$$$
         \"$attribute.capsule$\".\"$attribute.annexName\"
     WHERE
         $attribute.positingColumnName <= positingTimepoint;
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 
 -- Attribute assembled rewinder ---------------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$$$
+$$BODY$$
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
         p.$attribute.identityColumnName,
@@ -157,7 +157,7 @@ $$$$
                 sub.$attribute.positingColumnName DESC
             LIMIT 1
         );
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 
 -- Attribute assembled forwarder --------------------------------------------------------------------------------------
@@ -180,7 +180,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"f$attribute.name\" (
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity, : $attribute.dataRange,
         $attribute.changingColumnName $attribute.timeRange
     ) AS
-$$$$
+$$BODY$$
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
         p.$attribute.identityColumnName,
@@ -213,7 +213,7 @@ $$$$
                 sub.$attribute.positingColumnName DESC
             LIMIT 1
         );
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 
 -- Attribute previous value -------------------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"pre$attribute.name\" (
     )
     RETURNS $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     AS
-$$$$
+$$BODY$$
     SELECT $(attribute.hasChecksum())? pre.$attribute.checksumColumnName : pre.$attribute.valueColumnName
     FROM
         \"$attribute.capsule$\".\"r$attribute.name\"(
@@ -245,7 +245,7 @@ $$$$
         pre.$attribute.changingColumnName DESC,
         pre.$attribute.positingColumnName DESC
     LIMIT 1;
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 
 -- Attribute following value ------------------------------------------------------------------------------------------
@@ -259,7 +259,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"fol$attribute.name\" (
     )
     RETURNS $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     AS
-$$$$
+$$BODY$$
     SELECT $(attribute.hasChecksum())? fol.$attribute.checksumColumnName : fol.$attribute.valueColumnName
     FROM
         \"$attribute.capsule$\".\"f$attribute.name\"(
@@ -277,7 +277,7 @@ $$$$
         fol.$attribute.changingColumnName ASC,
         fol.$attribute.positingColumnName DESC
     LIMIT 1;
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 ~*/
         }
@@ -297,7 +297,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.annexName\" (
         $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
         $attribute.reliableColumnName $schema.reliableColumnType
     ) AS
-$$$$
+$$BODY$$
     SELECT
         $(schema.METADATA)? $attribute.metadataColumnName,
         $attribute.identityColumnName,
@@ -309,7 +309,7 @@ $$$$
         \"$attribute.capsule$\".\"$attribute.annexName\"
     WHERE
         $attribute.positingColumnName <= positingTimepoint;
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 
 -- Attribute assembled rewinder ---------------------------------------------------------------------------------------
@@ -330,7 +330,7 @@ CREATE OR REPLACE FUNCTION \"$attribute.capsule$\".\"r$attribute.name\" (
         $(attribute.hasChecksum())? $attribute.checksumColumnName $schema.checksumType,
         $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     ) AS
-$$$$
+$$BODY$$
     SELECT
         $(schema.METADATA)? a.$attribute.metadataColumnName,
         p.$attribute.identityColumnName,
@@ -362,7 +362,7 @@ $$$$
                 sub.$attribute.positingColumnName DESC
             LIMIT 1
         );
-$$$$
+$$BODY$$
 LANGUAGE SQL;
 ~*/
         }

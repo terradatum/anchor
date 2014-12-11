@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS $schema.metadata.encapsulation\.\"_$schema.metadata.p
     )
 );
 
-DO $$$$
+DO $$BODY$$
 BEGIN
     IF NOT EXISTS(
         SELECT $schema.metadata.positorSuffix
@@ -29,7 +29,7 @@ BEGIN
         );
     END IF;
 END
-$$$$ LANGUAGE plpgsql;
+$$BODY$$ LANGUAGE plpgsql;
 
 
 ~*/
