@@ -12,7 +12,7 @@ SQL/PostgreSQL/crt/CreateAttributeAssembledViews.js
 SQL/PostgreSQL/crt/CreateAttributeRewinders.js
 SQL/PostgreSQL/crt/AddAttributeRestatementConstraints.js
 #SQL/PostgreSQL/biz/DropAnchorBusinessPerspectives.js
-##SQL/PostgreSQL/crt/CreateAnchorPerspectives.js
+SQL/PostgreSQL/crt/CreateAnchorPerspectives.js
 #SQL/PostgreSQL/biz/CreateAnchorBusinessPerspectives.js
 #SQL/PostgreSQL/crt/CreateKeyGenerators.js
 #SQL/PostgreSQL/crt/CreateAttributeTriggers.js

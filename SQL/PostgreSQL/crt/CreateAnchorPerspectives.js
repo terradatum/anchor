@@ -113,7 +113,7 @@ FROM
         while (attribute = anchor.nextAttribute()) {
 /*~
 LEFT JOIN
-    $attribute.capsule\.r$attribute.name(
+    $attribute.capsule\.\"r$attribute.name\"(
         v_positor,
         $(attribute.isHistorized())? v_changingTimepoint,
         v_positingTimepoint
@@ -123,7 +123,7 @@ ON
         SELECT
             sub.$attribute.identityColumnName
         FROM
-            $attribute.capsule\.r$attribute.name(
+            $attribute.capsule\.\"r$attribute.name\"(
                 v_positor,
                 $(attribute.isHistorized())? v_changingTimepoint,
                 v_positingTimepoint
@@ -174,7 +174,40 @@ CROSS JOIN LATERAL
 CREATE OR REPLACE FUNCTION $anchor.capsule\.\"p$anchor.name\" (
     v_changingTimepoint $schema.metadata.chronon
 )
-RETURNS TABLE () AS $$$$
+RETURNS TABLE (
+    $schema.metadata.positorSuffix $schema.metadata.positorRange,
+    Reliable int,
+    $anchor.identityColumnName $anchor.identity,
+    $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType,
+~*/
+        var knot, attribute;
+        while (attribute = anchor.nextAttribute()) {
+/*~
+    $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity,
+    $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
+    $attribute.identityColumnName $attribute.identity,
+    $(attribute.timeRange)? $attribute.changingColumnName $attribute.timeRange,
+    $attribute.positingColumnName $schema.metadata.positingRange,
+    $attribute.positorColumnName $schema.metadata.positorRange,
+    $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
+    $attribute.reliableColumnName smallint,
+~*/
+            if(attribute.isKnotted()) {
+                knot = attribute.knot;
+/*~
+    $(knot.hasChecksum())? $attribute.knotChecksumColumnName, --TODO
+    $attribute.knotValueColumnName $knot.dataRange,
+    $(schema.METADATA)? $attribute.knotMetadataColumnName $schema.metadata.metadataType,
+~*/
+            }
+/*~
+    $(attribute.hasChecksum())? $attribute.checksumColumnName,  --TODO
+    $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
+    $(anchor.hasMoreAttributes())?,
+~*/
+        }
+/*~
+) AS $$$$
 SELECT
     p.*, 
     1 as $schema.metadata.reliableSuffix,
@@ -214,9 +247,42 @@ CROSS JOIN LATERAL
 CREATE OR REPLACE FUNCTION $anchor.capsule\.\"d$anchor.name\" (
     v_intervalStart $schema.metadata.chronon,
     v_intervalEnd $schema.metadata.chronon,
-    v_selection varchar(max) = null
+    v_selection varchar(1000) = null
 )
-RETURNS TABLE () AS $$$$
+RETURNS TABLE (
+    inspectedTimepoint $schema.metadata.chronon,
+    $anchor.identityColumnName $anchor.identity,
+    $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType,
+~*/
+        var knot, attribute;
+        while (attribute = anchor.nextAttribute()) {
+/*~
+    $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity,
+    $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
+    $attribute.identityColumnName $attribute.identity,
+    $(attribute.timeRange)? $attribute.changingColumnName $attribute.timeRange,
+    $attribute.positingColumnName $schema.metadata.positingRange,
+    $attribute.positorColumnName $schema.metadata.positorRange,
+    $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
+    $attribute.reliableColumnName smallint,
+~*/
+            if(attribute.isKnotted()) {
+                knot = attribute.knot;
+/*~
+    $(knot.hasChecksum())? $attribute.knotChecksumColumnName, --TODO
+    $attribute.knotValueColumnName $knot.dataRange,
+    $(schema.METADATA)? $attribute.knotMetadataColumnName $schema.metadata.metadataType,
+~*/
+            }
+/*~
+    $(attribute.hasChecksum())? $attribute.checksumColumnName,  --TODO
+    $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
+    $(anchor.hasMoreAttributes())?,
+~*/
+        }
+/*~
+
+) AS $$$$
 SELECT
     timepoints.inspectedTimepoint,
     $anchor.mnemonic\.*
@@ -232,7 +298,7 @@ JOIN (
         $attribute.changingColumnName AS inspectedTimepoint,
         '$attribute.mnemonic' AS mnemonic
     FROM
-        $attribute.capsule\.$attribute.name
+        $attribute.capsule\.\"$attribute.name\"
     WHERE
         (v_selection is null OR v_selection like '%$attribute.mnemonic%')
     AND
@@ -247,14 +313,12 @@ ON
 CROSS JOIN LATERAL
     $anchor.capsule\.\"t$anchor.name\" (
         timepoints.positor,
-        timepoints.inspectedTimepoint,
-        DEFAULT,
-        DEFAULT
+        timepoints.inspectedTimepoint
     ) $anchor.mnemonic
  WHERE
     $anchor.mnemonic\.$anchor.identityColumnName = timepoints.$anchor.identityColumnName;
 
-$$$$;
+$$$$ LANGUAGE SQL;
 
 ~*/
         }
