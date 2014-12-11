@@ -20,7 +20,7 @@ while (anchor = schema.nextAnchor()) {
 -- it_l$anchor.name instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"tf_l$anchor.name\"()
-    RETURNS void AS 
+    RETURNS trigger AS 
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     \"id\" $anchor.identity;
@@ -41,16 +41,49 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"tf_l$anchor.name\"()
         inserted.$anchor.identityColumnName is null
     RETURNING $anchor.identityColumnName
     INTO id;
-    --  SELECT INTO id FROM (SELECT CURRVAL(\'$anchor.identityColumnName\'));
     INSERT INTO \"$anchor.mnemonic\" (
         $anchor.identityColumnName
     )
-    VALUES (id);
-        
+    VALUES (
+        id
+    );
+
+    CREATE TEMP TABLE inserted (
+        $anchor.identityColumnName $anchor.identity not null,
+        $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType not null,
+~*/
+        while (attribute = anchor.nextAttribute()) {
+/*~
+        $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity null,
+        $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
+        $(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange null,
+        $attribute.positorColumnName $schema.metadata.positorRange null,
+        $attribute.positingColumnName $schema.metadata.positingRange null,
+        $attribute.reliabilityColumnName $schema.metadata.reliabilityRange null,
+~*/
+            if(attribute.isKnotted()) {
+                knot = attribute.knot;
+/*~
+        $attribute.knotValueColumnName $knot.dataRange null,
+        $(knot.hasChecksum())? $attribute.knotChecksumColumnName varbinary(16) null,
+        $(schema.METADATA)? $attribute.knotMetadataColumnName $schema.metadata.metadataType null,
+        $attribute.valueColumnName $knot.identity null$(anchor.hasMoreAttributes())?,
+~*/
+            }
+            else {
+/*~
+        $attribute.valueColumnName $attribute.dataRange null$(anchor.hasMoreAttributes())?,
+~*/
+            }
+        }
+/*~
+    );
+    RETURN inserted;
     END;
     $$BODY$$
     LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS \"it_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\";
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
     EXECUTE PROCEDURE $anchor.capsule$.\"tf_l$anchor.name\"();
