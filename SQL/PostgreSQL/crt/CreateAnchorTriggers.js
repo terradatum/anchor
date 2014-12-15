@@ -191,7 +191,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
         }
 /*~
 
-    RETURN inserted;
+    RETURN null;
     END;
     $$BODY$$
     LANGUAGE plpgsql;
@@ -204,7 +204,7 @@ CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$an
     FOR EACH ROW
     EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name\"();
 ~*/
-    }
+    } // end of if attributes exist
     if(anchor.hasMoreAttributes()) {
 /*~
 -- UPDATE function -----------------------------------------------------------------------------------------------------
@@ -214,7 +214,6 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
     RETURNS trigger AS 
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
-    \"id\" $anchor.identity;
     BEGIN
     now := $schema.metadata.now;
    IF(OLD.$anchor.identityColumnName != NEW.$anchor.identityColumnName)
@@ -230,7 +229,112 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
         THEN RAISE EXCEPTION 'The foreign key column $attribute.anchorReferenceName is not updatable.';
     END IF;
 ~*/
-        }
+            if(attribute.isKnotted()) {
+                knot = attribute.knot;
+/*~
+    IF(OLD.$attribute.valueColumnName != NEW.$attribute.valueColumnName OR OLD.$attribute.knotValueColumnName != NEW.$attribute.knotValueColumnName)
+    THEN BEGIN
+        INSERT INTO $attribute.capsule$.\"$attribute.name\" (
+            $(schema.METADATA)? $attribute.metadataColumnName,
+            $attribute.anchorReferenceName,
+            $attribute.valueColumnName,
+            $(attribute.isHistorized())? $attribute.changingColumnName,
+            $attribute.positingColumnName,
+            $attribute.positorColumnName,
+            $attribute.reliabilityColumnName
+        )
+        SELECT
+            $(schema.METADATA)? COALESCE(i.$attribute.metadataColumnName, i.$anchor.metadataColumnName),
+            COALESCE(i.$attribute.anchorReferenceName, i.$anchor.identityColumnName),
+            CASE WHEN (OLD.$attribute.valueColumnName != NEW.$attribute.valueColumnName) THEN i.$attribute.valueColumnName ELSE k$knot.mnemonic$.$knot.identityColumnName END,
+~*/
+                if(attribute.isHistorized()) {
+/*~
+            cast(CASE
+                WHEN i.$attribute.valueColumnName is null AND k$knot.mnemonic$.$knot.identityColumnName is null THEN i.$attribute.changingColumnName
+                WHEN (OLD.$attribute.changingColumnName != NEW.$attribute.changingColumnName) THEN i.$attribute.changingColumnName
+                ELSE now
+            END as $attribute.timeRange),
+~*/
+                }
+/*~
+            cast(CASE WHEN (OLD.$attribute.positingColumnName != NEW.$attribute.positingColumnName) THEN i.$attribute.positingColumnName ELSE now END as $schema.metadata.positingRange),
+            CASE WHEN (OLD.$schema.metadata.positorSuffix != NEW.$schema.metadata.positorSuffix) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
+            CASE
+                WHEN i.$attribute.valueColumnName is null AND k$knot.mnemonic$.$knot.identityColumnName is null THEN $schema.metadata.deleteReliability
+                WHEN (OLD.$schema.metadata.reliableSuffix != NEW.$schema.metadata.reliableSuffix) THEN
+                    CASE i.$schema.metadata.reliableSuffix
+                        WHEN 0 THEN $schema.metadata.deleteReliability
+                        ELSE $schema.metadata.reliableCutoff
+                    END
+                WHEN (OLD.$attribute.reliableColumnName != NEW.$attribute.reliableColumnName) THEN
+                    CASE i.$attribute.reliableColumnName
+                        WHEN 0 THEN $schema.metadata.deleteReliability
+                        ELSE $schema.metadata.reliableCutoff
+                    END
+                ELSE COALESCE(i.$attribute.reliabilityColumnName, $schema.metadata.reliableCutoff)
+            END
+        FROM
+            inserted i
+        LEFT JOIN
+            $knot.capsule$.\"$knot.name\" \"k$knot.mnemonic\"
+        ON
+            $(knot.hasChecksum())? k$knot.mnemonic$.$knot.checksumColumnName = ${schema.metadata.encapsulation}$.MD5(cast(i.$attribute.knotValueColumnName as varbinary(max))) : k$knot.mnemonic$.$knot.valueColumnName = i.$attribute.knotValueColumnName;
+    END;
+    END IF;
+~*/
+            }
+            else { // not knotted
+/*~
+    IF(OLD.$attribute.valueColumnName != NEW.$attribute.valueColumnName)
+    THEN BEGIN
+        INSERT INTO $attribute.capsule$.\"$attribute.name\" (
+            $(schema.METADATA)? $attribute.metadataColumnName,
+            $attribute.anchorReferenceName,
+            $attribute.valueColumnName,
+            $(attribute.isHistorized())? $attribute.changingColumnName,
+            $attribute.positingColumnName,
+            $attribute.positorColumnName,
+            $attribute.reliabilityColumnName
+        )
+        SELECT
+            $(schema.METADATA)? COALESCE(i.$attribute.metadataColumnName, i.$anchor.metadataColumnName),
+            COALESCE(i.$attribute.anchorReferenceName, i.$anchor.identityColumnName),
+            i.$attribute.valueColumnName,
+~*/
+                if(attribute.isHistorized()) {
+/*~
+            cast(CASE
+                WHEN i.$attribute.valueColumnName is null THEN i.$attribute.changingColumnName
+                WHEN (OLD.$attribute.changingColumnName != NEW.$attribute.changingColumnName) THEN i.$attribute.changingColumnName
+                ELSE now
+            END as $attribute.timeRange),
+~*/
+                }
+/*~
+            cast(CASE WHEN (OLD.$attribute.positingColumnName != NEW.$attribute.positingColumnName) THEN i.$attribute.positingColumnName ELSE @now END as $schema.metadata.positingRange),
+            CASE WHEN (OLD.$schema.metadata.positorSuffix != NEW.$schema.metadata.positorSuffix) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
+            CASE
+                WHEN i.$attribute.valueColumnName is null THEN $schema.metadata.deleteReliability
+                WHEN (OLD.$schema.metadata.reliableSuffix != NEW.$schema.metadata.reliableSuffix) THEN
+                    CASE i.$schema.metadata.reliableSuffix
+                        WHEN 0 THEN $schema.metadata.deleteReliability
+                        ELSE $schema.metadata.reliableCutoff
+                    END
+                WHEN (OLD.$attribute.reliableColumnName != NEW.$attribute.reliableColumnName) THEN
+                    CASE i.$attribute.reliableColumnName
+                        WHEN 0 THEN $schema.metadata.deleteReliability
+                        ELSE $schema.metadata.reliableCutoff
+                    END
+                ELSE COALESCE(i.$attribute.reliabilityColumnName, $schema.metadata.reliableCutoff)
+            END
+        FROM
+            inserted i;
+    END;
+    END IF;
+~*/
+            } // end of not knotted
+        } // end of while loop over attributes
 /*~
     RETURN null;
     END;
@@ -245,5 +349,55 @@ CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$an
     FOR EACH ROW
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
 ~*/
-    }
+    } // end of if attributes exist
+    if(anchor.hasMoreAttributes()) {
+/*~
+-- DELETE function -----------------------------------------------------------------------------------------------------
+-- df_l$anchor.name instead of DELETE trigger function on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
+    RETURNS trigger AS 
+    $$BODY$$
+    DECLARE \"now\" $schema.metadata.chronon;
+    BEGIN
+    now := $schema.metadata.now;
+~*/
+        while (attribute = anchor.nextAttribute()) {
+/*~
+    INSERT INTO $attribute.capsule$.\"$attribute.annexName\" (
+        $(schema.METADATA)? $attribute.metadataColumnName,
+        $attribute.identityColumnName,
+        $attribute.positorColumnName,
+        $attribute.positingColumnName,
+        $attribute.reliabilityColumnName
+    )
+    SELECT
+        $(schema.METADATA)? p.$attribute.metadataColumnName,
+        p.$attribute.identityColumnName,
+        p.$attribute.positorColumnName,
+        now,
+        $schema.metadata.deleteReliability
+    FROM
+        deleted d
+    JOIN
+        $attribute.capsule$.\"$attribute.annexName\" p
+    ON
+        p.$attribute.identityColumnName = d.$attribute.identityColumnName;
+~*/
+        }
+/*~
+    RETURN null;
+    END;
+    $$BODY$$
+    LANGUAGE plpgsql;
+
+-- DELETE trigger -----------------------------------------------------------------------------------------------------
+-- dt_l$anchor.name instead of DELETE trigger on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"dt_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\";
+CREATE TRIGGER \"dt_l$anchor.name\" INSTEAD OF DELETE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $anchor.capsule$.\"df_l$anchor.name\"();
+~*/
+    } // end of if attributes exist
 }
