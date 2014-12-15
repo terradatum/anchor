@@ -111,11 +111,12 @@ FROM
     $anchor.capsule\.\"$anchor.name\" $anchor.mnemonic
 ~*/
         while (attribute = anchor.nextAttribute()) {
+            var timeRangeCaster = "::" + attribute.timeRange;
 /*~
 LEFT JOIN
     $attribute.capsule\.\"r$attribute.name\"(
         v_positor,
-        $(attribute.isHistorized())? v_changingTimepoint,
+        $(attribute.isHistorized())? v_changingTimepoint$timeRangeCaster,
         v_positingTimepoint
     ) $attribute.mnemonic
 ON
@@ -125,7 +126,7 @@ ON
         FROM
             $attribute.capsule\.\"r$attribute.name\"(
                 v_positor,
-                $(attribute.isHistorized())? v_changingTimepoint,
+                $(attribute.isHistorized())? v_changingTimepoint$timeRangeCaster,
                 v_positingTimepoint
             ) sub
         WHERE
@@ -295,7 +296,7 @@ JOIN (
     SELECT DISTINCT
         $attribute.positorColumnName AS positor,
         $attribute.anchorReferenceName AS $anchor.identityColumnName,
-        $attribute.changingColumnName AS inspectedTimepoint,
+        $attribute.changingColumnName::$schema.metadata.chronon AS inspectedTimepoint,
         '$attribute.mnemonic' AS mnemonic
     FROM
         $attribute.capsule\.\"$attribute.name\"

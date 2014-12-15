@@ -154,7 +154,7 @@ FROM (
 /*~
     SELECT DISTINCT
         $attribute.anchorReferenceName AS $anchor.identityColumnName,
-        $attribute.changingColumnName AS Time_of_Change,
+        $attribute.changingColumnName::$schema.metadata.chronon AS Time_of_Change,
         '$attribute.businessName' AS Subject_of_Change
     FROM
         $(attribute.isEquivalent())? $attribute.capsule\.\"e$attribute.name\"(0) : $attribute.capsule\.\"$attribute.name\"
