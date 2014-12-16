@@ -27,6 +27,7 @@
 ~*/
 var tie, role, knot;
 while (tie = schema.nextTie()) {
+    var timeRangeCaster = "::" + tie.timeRange;
 /*~
 -- Time traveling perspective -----------------------------------------------------------------------------------------
 -- t$tie.name viewed as given by the input parameters
@@ -86,7 +87,7 @@ SELECT
 FROM
     $tie.capsule\.\"r$tie.name\"(
         v_positor,
-        $(tie.isHistorized())? v_changingTimepoint,
+        $(tie.isHistorized())? v_changingTimepoint$timeRangeCaster,
         v_positingTimepoint
     ) tie
 ~*/
@@ -107,7 +108,7 @@ WHERE
         FROM
             $tie.capsule\.\"r$tie.name\"(
                 v_positor,
-                $(tie.isHistorized())? v_changingTimepoint,
+                $(tie.isHistorized())? v_changingTimepoint$timeRangeCaster,
                 v_positingTimepoint
             ) sub
         WHERE
