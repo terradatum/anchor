@@ -25,15 +25,13 @@ while (anchor = schema.nextAnchor()) {
 -- Insert trigger -----------------------------------------------------------------------------------------------------
 -- it_$attribute.name instead of INSERT trigger on $attribute.name
 -----------------------------------------------------------------------------------------------------------------------
-
-
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	DECLARE \"maxVersion\" int;
 	DECLARE \"currentVersion\" int;
 	BEGIN
-	CREATE TEMP TABLE @$attribute.name (
+	CREATE TEMP TABLE $attribute.name (
 		$attribute.anchorReferenceName $anchor.identity not null,
 		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
 		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange not null,
@@ -51,7 +49,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		    $attribute.anchorReferenceName
 		);
 	) ON COMMIT DROP;
-	INSERT INTO @$attribute.name
+	INSERT INTO $attribute.name
 	    SELECT
 		i.$attribute.anchorReferenceName,
 		$(schema.METADATA)? i.$attribute.metadataColumnName,
@@ -79,13 +77,13 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		inserted i;
 
 	    SELECT
-		@maxVersion = max($attribute.versionColumnName),
-		@currentVersion = 0
+		maxVersion = max($attribute.versionColumnName),
+		currentVersion = 0
 	    FROM
-		@$attribute.name;
-	    WHILE (@currentVersion < @maxVersion)
+		$attribute.name;
+	    WHILE (currentVersion < maxVersion)
 	    BEGIN
-		SET @currentVersion = @currentVersion + 1;
+		SET currentVersion = currentVersion + 1;
 		UPDATE v
 		SET
 		    v.$attribute.statementTypeColumnName =
@@ -94,7 +92,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 				SELECT TOP 1
 				    t.$attribute.identityColumnName
 				FROM
-				    [$anchor.capsule].[t$anchor.name](v.$attribute.positorColumnName, $changingParameter, v.$attribute.positingColumnName, v.$attribute.reliableColumnName) t
+				    \"$anchor.capsule\".\"t$anchor.name\"(v.$attribute.positorColumnName, $changingParameter, v.$attribute.positingColumnName, v.$attribute.reliableColumnName) t
 				WHERE
 				    t.$attribute.anchorReferenceName = v.$attribute.anchorReferenceName
 				$(attribute.isHistorized())? AND
@@ -140,9 +138,9 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 			    ELSE 'N' -- new statement
 			END
 		FROM
-		    @$attribute.name v
+		    $attribute.name v
 		LEFT JOIN
-		    [$attribute.capsule].[$attribute.positName] p
+		    \"$attribute.capsule\".\"$attribute.positName\" p
 		ON
 		    p.$attribute.anchorReferenceName = v.$attribute.anchorReferenceName
 		$(attribute.isHistorized())? AND
@@ -150,9 +148,9 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		AND
 		    $(attribute.hasChecksum())? p.$attribute.checksumColumnName = v.$attribute.checksumColumnName : p.$attribute.valueColumnName = v.$attribute.valueColumnName
 		WHERE
-		    v.$attribute.versionColumnName = @currentVersion;
+		    v.$attribute.versionColumnName = currentVersion;
 
-		INSERT INTO [$attribute.capsule].[$attribute.positName] (
+		INSERT INTO \"$attribute.capsule\".\"$attribute.positName\" (
 		    $attribute.anchorReferenceName,
 		    $(attribute.isHistorized())? $attribute.changingColumnName,
 		    $attribute.valueColumnName
@@ -162,13 +160,13 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		    $(attribute.isHistorized())? $attribute.changingColumnName,
 		    $attribute.valueColumnName
 		FROM
-		    @$attribute.name
+		    $attribute.name
 		WHERE
-		    $attribute.versionColumnName = @currentVersion
+		    $attribute.versionColumnName = currentVersion
 		AND
 		    $attribute.statementTypeColumnName in ($statementTypes);
 
-		INSERT INTO [$attribute.capsule].[$attribute.annexName] (
+		INSERT INTO \"$attribute.capsule\".\"$attribute.annexName\" (
 		    $(schema.METADATA)? $attribute.metadataColumnName,
 		    $attribute.identityColumnName,
 		    $attribute.positorColumnName,
@@ -182,9 +180,9 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		    v.$attribute.positingColumnName,
 		    v.$attribute.reliabilityColumnName
 		FROM
-		    @$attribute.name v
+		    $attribute.name v
 		JOIN
-		    [$attribute.capsule].[$attribute.positName] p
+		    \"$attribute.capsule\".\"$attribute.positName\" p
 		ON
 		    p.$attribute.anchorReferenceName = v.$attribute.anchorReferenceName
 		$(attribute.isHistorized())? AND
@@ -192,7 +190,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		AND
 		    $(attribute.hasChecksum())? p.$attribute.checksumColumnName = v.$attribute.checksumColumnName : p.$attribute.valueColumnName = v.$attribute.valueColumnName
 		WHERE
-		    v.$attribute.versionColumnName = @currentVersion
+		    v.$attribute.versionColumnName = currentVersion
 		AND
 		    $attribute.statementTypeColumnName in ('S',$statementTypes);
 	    END
