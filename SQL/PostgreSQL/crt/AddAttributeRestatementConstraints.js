@@ -128,8 +128,11 @@ if(restatements) {
 ~*/
                 if(!attribute.isRestatable()) {
 /*~
-    ALTER TABLE $attribute.capsule$.$attribute.annexName
-    ADD CONSTRAINT rc$attribute.annexName CHECK (
+    ALTER TABLE \"$attribute.capsule$\".\"$attribute.annexName\"
+    DROP CONSTRAINT IF EXISTS \"rc$attribute.annexName \"
+
+    ALTER TABLE \"$attribute.capsule$\".\"$attribute.annexName\"
+    ADD CONSTRAINT \"rc$attribute.annexName\" CHECK (
         \"$attribute.capsule$\".\"rf$attribute.name\" (
             $attribute.identityColumnName,
             $attribute.positingColumnName,

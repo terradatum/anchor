@@ -27,24 +27,23 @@ if(restatements) {
 -- rf$tie.name restatement finder
 -- rc$tie.name restatement constraint (available only in ties that cannot have restatements)
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.rf$tie.name (
+CREATE OR REPLACE FUNCTION \"$tie.capsule$\".\"rf$tie.name\" (
         \"posit\" $tie.identity,
         \"posited\" $schema.metadata.positingRange,
         \"positor\" $schema.metadata.positorRange,
         \"reliable\" $schema.reliableColumnType
     )
     RETURNS $schema.reliableColumnType AS 
-$$BODY$$
-    DECLARE
+    $$BODY$$
 ~*/
         while(role = tie.nextRole()) {
 /*~
-    $role.name $(role.anchor)? $role.anchor.identity; : $role.knot.identity;
+    DECLARE $role.name $(role.anchor)? $role.anchor.identity; : $role.knot.identity;
 ~*/
         }
 /*~
-   changed $tie.timeRange;
-BEGIN
+    DECLARE changed $tie.timeRange;
+    BEGIN
     SELECT INTO
 ~*/
         while(role = tie.nextRole()) {
@@ -53,7 +52,7 @@ BEGIN
 ~*/
         }
 /*~
-        changed
+         changed
 ~*/
         while(role = tie.nextRole()) {
 /*~
@@ -61,133 +60,137 @@ BEGIN
 ~*/
         }
 /*~
-        p.$tie.changingColumnName
+         p.$tie.changingColumnName
     FROM
-        $tie.capsule$.$tie.positName p
+        \"$tie.capsule$\".\"$tie.positName\" p
     WHERE
         p.$tie.identityColumnName = posit;
 
     RETURN
         CASE WHEN reliable = 0 THEN 0
-        ELSE (
-        SELECT
-            COUNT(*)
-        FROM (
-            SELECT 
-~*/
-            while(role = tie.nextValue()) {
-/*~
-                pre.$role.columnName$(tie.hasMoreValues())?,
-~*/
-            }
-/*~
-            FROM
-                $tie.capsule$.r$tie.name (
-                    positor,
-                    changed,
-                    posited
-                ) pre
-            WHERE
-~*/
-            if(tie.hasMoreIdentifiers()) {
-                while(role = tie.nextIdentifier()) {
-/*~
-                pre.$role.columnName = $role.name
-            AND
-~*/
-                }
-            }
-            else {
-/*~
-            (
-~*/
-                while(role = tie.nextValue()) {
-/*~
-                    pre.$role.columnName = $role.name
-                $(tie.hasMoreValues())? OR
-~*/
-                }
-/*~
+            ELSE (
+                SELECT
+                    COUNT(*)
+                FROM (
+                    (SELECT 
+        ~*/
+                    while(role = tie.nextValue()) {
+        /*~
+                        pre.$role.columnName$(tie.hasMoreValues())?,
+        ~*/
+                    }
+        /*~
+                    FROM
+                        \"$tie.capsule$\".\"r$tie.name\" (
+                            positor,
+                            changed,
+                            posited
+                        ) pre
+                    WHERE
+        ~*/
+                    if(tie.hasMoreIdentifiers()) {
+                        while(role = tie.nextIdentifier()) {
+        /*~
+                        pre.$role.columnName = $role.name
+                    AND
+        ~*/
+                        }
+                    }
+                    else {
+        /*~
+                    (
+        ~*/
+                        while(role = tie.nextValue()) {
+        /*~
+                            pre.$role.columnName = $role.name
+                        $(tie.hasMoreValues())? OR
+        ~*/
+                        }
+        /*~
+                    )
+                    AND
+        ~*/
+                    }
+        /*~
+                        pre.$tie.changingColumnName < changed
+                    AND
+                        pre.$tie.reliableColumnName = 1
+                    ORDER BY
+                        pre.$tie.changingColumnName DESC,
+                        pre.$tie.positingColumnName DESC
+                    LIMIT 1)
+                    UNION
+                    (SELECT
+        ~*/
+                    while(role = tie.nextValue()) {
+        /*~
+                        fol.$role.columnName$(tie.hasMoreValues())?,
+        ~*/
+                    }
+        /*~
+                    FROM
+                        \"$tie.capsule$\".\"f$tie.name\" (
+                            positor,
+                            changed,
+                            posited                    
+                        ) fol
+                    WHERE
+        ~*/
+                    if(tie.hasMoreIdentifiers()) {
+                        while(role = tie.nextIdentifier()) {
+        /*~
+                        fol.$role.columnName = $role.name
+                    AND
+        ~*/
+                        }
+                    }
+                    else {
+        /*~
+                    (
+        ~*/
+                        while(role = tie.nextValue()) {
+        /*~
+                            fol.$role.columnName = $role.name
+                        $(tie.hasMoreValues())? OR
+        ~*/
+                        }
+        /*~
+                    )
+                    AND
+        ~*/
+                    }
+        /*~
+                        fol.$tie.changingColumnName > changed
+                    AND
+                        fol.$tie.reliableColumnName = 1
+                    ORDER BY
+                        fol.$tie.changingColumnName ASC,
+                        fol.$tie.positingColumnName DESC
+                    LIMIT 1)
+                ) s
+                WHERE
+        ~*/
+                    while(role = tie.nextValue()) {
+        /*~
+                    s.$role.columnName = $role.name
+                $(tie.hasMoreValues())? AND
+        ~*/
+                    }
+        /*~
             )
-            AND
-~*/
-            }
-/*~
-                pre.$tie.changingColumnName < changed
-            AND
-                pre.$tie.reliableColumnName = 1
-            ORDER BY
-                pre.$tie.changingColumnName DESC,
-                pre.$tie.positingColumnName DESC
-            LIMIT 1
-            UNION
-            SELECT
-~*/
-            while(role = tie.nextValue()) {
-/*~
-                fol.$role.columnName$(tie.hasMoreValues())?,
-~*/
-            }
-/*~
-            FROM
-                $tie.capsule$.f$tie.name (
-                    positor,
-                    changed,
-                    posited                    
-                ) fol
-            WHERE
-~*/
-            if(tie.hasMoreIdentifiers()) {
-                while(role = tie.nextIdentifier()) {
-/*~
-                fol.$role.columnName = $role.name
-            AND
-~*/
-                }
-            }
-            else {
-/*~
-            (
-~*/
-                while(role = tie.nextValue()) {
-/*~
-                    fol.$role.columnName = $role.name
-                $(tie.hasMoreValues())? OR
-~*/
-                }
-/*~
-            )
-            AND
-~*/
-            }
-/*~
-                fol.$tie.changingColumnName > changed
-            AND
-                fol.$tie.reliableColumnName = 1
-            ORDER BY
-                fol.$tie.changingColumnName ASC,
-                fol.$tie.positingColumnName DESC
-            LIMIT 1
-        ) s
-        WHERE
-~*/
-            while(role = tie.nextValue()) {
-/*~
-            s.$role.columnName = $role.name
-        $(tie.hasMoreValues())? AND
-~*/
-            }
-/*~
-    )
-END;
+        END;
+    END
 $$BODY$$
 LANGUAGE plpgsql;
 ~*/
             if(!tie.isRestatable()) {
 /*~
-    ALTER TABLE $tie.capsule$.$tie.annexName
-    ADD CONSTRAINT rc$tie.name CHECK (
-        $tie.capsule$.rf$tie.name (
+    ALTER TABLE \"$tie.capsule$\".\"$tie.annexName\"
+    DROP CONSTRAINT IF EXISTS \"rc$tie.name\";
+
+    ALTER TABLE \"$tie.capsule$\".\"$tie.annexName\"
+    ADD CONSTRAINT \"rc$tie.name\" CHECK (
+        \"$tie.capsule$\".\"rf$tie.name\" (
             $tie.identityColumnName,
             $tie.positingColumnName,
             $tie.positorColumnName,
