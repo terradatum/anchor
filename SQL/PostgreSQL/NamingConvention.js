@@ -17,10 +17,6 @@ schema.metadata.checksumSuffix = schema.metadata.checksumSuffix || 'ck';
 // Custom function to adhere to postgres identifier limit of 63 chars.  
 // Truncate to 50 characters because that leaves room for the suffix that is appended.
 var checkAndAdjustIdLength = function(id) {
-    if(id.length > 50) {
-        console.log("More than 50 chars: " + id);
-        return id.substr(0, 50);
-    }
     return id;
 };
 
