@@ -47,7 +47,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		    $attribute.versionColumnName,
 		    $attribute.positorColumnName,
 		    $attribute.anchorReferenceName
-		);
+		)
 	) ON COMMIT DROP;
 	INSERT INTO $attribute.name
 	    SELECT
@@ -193,9 +193,11 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		    v.$attribute.versionColumnName = currentVersion
 		AND
 		    $attribute.statementTypeColumnName in ('S',$statementTypes);
-	    END
-	$$BODY$$    
-	END
+		END;
+    RETURN null;
+	END;
+	$$BODY$$
+	LANGUAGE plpgsql;
 ~*/
     } // end of loop over attributes
 }

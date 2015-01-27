@@ -29,7 +29,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
     CREATE TEMP TABLE N ON COMMIT DROP
     AS SELECT NEW.$anchor.metadataColumnName AS $anchor.metadataColumnName,
               NEW.$anchor.identityColumnName AS $anchor.identityColumnName;
-    CREATE TEMP TABLE $anchor.mnemonic (
+    CREATE TEMP TABLE \"$anchor.mnemonic\" (
         Row serial not null CONSTRAINT pk_row primary key,
         $anchor.identityColumnName $anchor.identity not null
     ) ON COMMIT DROP;

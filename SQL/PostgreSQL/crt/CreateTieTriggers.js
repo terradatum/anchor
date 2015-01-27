@@ -367,15 +367,10 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_$tie.name\"()
 		    v.$tie.versionColumnName = currentVersion
 		AND
 		    v.$tie.statementTypeColumnName in ('S',$statementTypes);
-	    END
-	END
-	GO
-
-
-
-
-
-
+	RETURN null;
+	END;
+	$$BODY$$
+    LANGUAGE plpgsql;
 
 ~*/
 // Here comes the trigger on the latest view, using the trigger above
@@ -429,9 +424,11 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_l$tie.name\"()
 	    ON
 		\"$role.name\".$knot.valueColumnName = i.$role.knotValueColumnName~*/
 		}
-	/*~;           
-	END
-	GO
+	/*~;
+	RETURN null;
+	END;
+	$$BODY$$
+	LANGUAGE plpgsql;
 ~*/
     if(tie.hasMoreValues()) {
 /*~
@@ -516,9 +513,11 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"ut_l$tie.name\"()
 	    ON
 		\"$role.name\".$knot.valueColumnName = i.$role.knotValueColumnName~*/
 		}
-	/*~;     
-	END
-	GO
+	/*~;
+	RETURN null;
+	END;
+	$$BODY$$
+	LANGUAGE plpgsql;
 ~*/
     }
 /*~
@@ -552,7 +551,9 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"dt_l$tie.name\"()
 		$schema.metadata.deleteReliability
 	    FROM
 		deleted d;
-	END
-	GO
+	RETURN null;
+	END;
+	$$BODY$$
+	LANGUAGE plpgsql;
 ~*/
 }
