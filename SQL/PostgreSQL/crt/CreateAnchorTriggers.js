@@ -26,30 +26,26 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
     \"id\" $anchor.identity;
     BEGIN
     now := $schema.metadata.now;
-    CREATE TEMP TABLE N ON COMMIT DROP
-    AS SELECT NEW.$anchor.metadataColumnName AS $anchor.metadataColumnName,
-              NEW.$anchor.identityColumnName AS $anchor.identityColumnName;
     CREATE TEMP TABLE \"$anchor.mnemonic\" (
         Row serial not null CONSTRAINT pk_row primary key,
         $anchor.identityColumnName $anchor.identity not null
     ) ON COMMIT DROP;
-    INSERT INTO $anchor.capsule$.\"$anchor.name\" (
-        $(schema.METADATA)? $anchor.metadataColumnName : $anchor.dummyColumnName
-    )
-    SELECT
-        $(schema.METADATA)? $anchor.metadataColumnName : null
-    FROM
-        N
-    WHERE
-        N.$anchor.identityColumnName is null
-    RETURNING $anchor.identityColumnName
-    INTO id;
-    INSERT INTO \"$anchor.mnemonic\" (
-        $anchor.identityColumnName
-    )
-    VALUES (
-        id
-    );
+    IF NEW.$anchor.identityColumnName is null
+    THEN
+        INSERT INTO $anchor.capsule$.\"$anchor.name\" (
+            $(schema.METADATA)? $anchor.metadataColumnName : $anchor.dummyColumnName
+        )
+        SELECT
+            $(schema.METADATA)? NEW.$anchor.metadataColumnName : null
+        RETURNING $anchor.identityColumnName
+        INTO id;
+        INSERT INTO \"$anchor.mnemonic\" (
+            $anchor.identityColumnName
+        )
+        VALUES (
+            id
+        );
+    END IF;
 
     CREATE TEMP TABLE inserted (
         $anchor.identityColumnName $anchor.identity not null,
@@ -115,40 +111,38 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
 /*~
     FROM (
         SELECT
-            $schema.metadata.positorSuffix,
-            $schema.metadata.reliableSuffix,
-            $anchor.identityColumnName,
-            $(schema.METADATA)? $anchor.metadataColumnName,
+            NEW.$schema.metadata.positorSuffix,
+            NEW.$schema.metadata.reliableSuffix,
+            NEW.$anchor.identityColumnName,
+            $(schema.METADATA)? NEW.$anchor.metadataColumnName,
  ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
-            $(schema.IMPROVED)? $attribute.anchorReferenceName,
-            $(schema.METADATA)? $attribute.metadataColumnName,
-            $(attribute.isHistorized())? $attribute.changingColumnName,
-            $attribute.positorColumnName,
-            $attribute.positingColumnName,
-            $attribute.reliabilityColumnName,
-            $attribute.reliableColumnName,
+            $(schema.IMPROVED)? NEW.$attribute.anchorReferenceName,
+            $(schema.METADATA)? NEW.$attribute.metadataColumnName,
+            $(attribute.isHistorized())? NEW.$attribute.changingColumnName,
+            NEW.$attribute.positorColumnName,
+            NEW.$attribute.positingColumnName,
+            NEW.$attribute.reliabilityColumnName,
+            NEW.$attribute.reliableColumnName,
 ~*/
             if(attribute.isKnotted()) {
                 knot = attribute.knot;
 /*~
-            $attribute.knotValueColumnName,
-            $(knot.hasChecksum())? $attribute.knotChecksumColumnName,
-            $(schema.METADATA)? $attribute.knotMetadataColumnName,
+            NEW.$attribute.knotValueColumnName,
+            $(knot.hasChecksum())? NEW.$attribute.knotChecksumColumnName,
+            $(schema.METADATA)? NEW.$attribute.knotMetadataColumnName,
 ~*/
             }
 /*~
-            $attribute.valueColumnName,
+            NEW.$attribute.valueColumnName,
 ~*/
         }
 /*~
             ROW_NUMBER() OVER () AS Row
-        FROM
-            inserted
     ) i
     LEFT JOIN
-        $anchor.mnemonic a
+        \"$anchor.mnemonic\" a
     ON
         a.Row = i.Row;
 ~*/
