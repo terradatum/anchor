@@ -20,12 +20,12 @@ while (anchor = schema.nextAnchor()) {
             statementTypes += ",'D'";
         if(attribute.isHistorized() && !attribute.isIdempotent())
             statementTypes += ",'R'";
-        var changingParameter = attribute.isHistorized() ? 'v.' + attribute.changingColumnName : 'DEFAULT';
+        var changingParameter = attribute.isHistorized() ? 'v_changingtimepoint := v.' + attribute.changingColumnName + ', ' : '';
 /*~
 -- Insert trigger -----------------------------------------------------------------------------------------------------
--- it_$attribute.name instead of INSERT trigger on $attribute.name
+-- if_$attribute.name instead of INSERT trigger on $attribute.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
+CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	DECLARE \"maxVersion\" int;
@@ -38,7 +38,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		$attribute.positorColumnName $schema.metadata.positorRange not null,
 		$attribute.positingColumnName $schema.metadata.positingRange not null,
 		$attribute.reliabilityColumnName $schema.metadata.reliabilityRange not null,
-		$attribute.reliableColumnName tinyint not null,
+		$attribute.reliableColumnName smallint not null,
 		$(attribute.knotRange)? $attribute.valueColumnName $attribute.knot.identity not null, : $attribute.valueColumnName $attribute.dataRange not null,
 		$(attribute.hasChecksum())? $attribute.checksumColumnName varbinary(16) not null,
 		$attribute.versionColumnName bigint not null,
@@ -77,22 +77,22 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		inserted i;
 
 	    SELECT
-		maxVersion = max($attribute.versionColumnName),
-		currentVersion = 0
+		\"maxVersion\" = max($attribute.versionColumnName),
+		\"currentVersion\" = 0
 	    FROM
 		$attribute.name;
 	    WHILE (currentVersion < maxVersion)
-	    BEGIN
-		SET currentVersion = currentVersion + 1;
+	    LOOP
+		\"currentVersion\" = currentVersion + 1;
 		UPDATE v
 		SET
 		    v.$attribute.statementTypeColumnName =
 			CASE
 			    WHEN EXISTS (
-				SELECT TOP 1
+				SELECT
 				    t.$attribute.identityColumnName
 				FROM
-				    \"$anchor.capsule\".\"t$anchor.name\"(v.$attribute.positorColumnName, $changingParameter, v.$attribute.positingColumnName, v.$attribute.reliableColumnName) t
+				    \"$anchor.capsule\".\"t$anchor.name\"(v_positor := v.$attribute.positorColumnName, $changingParameter v_positingtinepoint := v.$attribute.positingColumnName, v_reliable := v.$attribute.reliableColumnName) t
 				WHERE
 				    t.$attribute.anchorReferenceName = v.$attribute.anchorReferenceName
 				$(attribute.isHistorized())? AND
@@ -101,7 +101,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 				    t.$attribute.reliabilityColumnName = v.$attribute.reliabilityColumnName
 				AND
 				    $(attribute.hasChecksum())? t.$attribute.checksumColumnName = v.$attribute.checksumColumnName : t.$attribute.valueColumnName = v.$attribute.valueColumnName
-			    )
+			    LIMIT 1)
 			    THEN 'D' -- duplicate assertion
 			    WHEN p.$attribute.anchorReferenceName is not null
 			    THEN 'S' -- duplicate statement
@@ -193,11 +193,19 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"it_$anchor.name\"()
 		    v.$attribute.versionColumnName = currentVersion
 		AND
 		    $attribute.statementTypeColumnName in ('S',$statementTypes);
-		END;
+		END LOOP;
     RETURN null;
 	END;
 	$$BODY$$
 	LANGUAGE plpgsql;
+
+-- Insert trigger -----------------------------------------------------------------------------------------------------
+-- it_l$anchor.name instead of INSERT trigger on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"it_$attribute.name\" ON $attribute.capsule$.\"$attribute.name\";
+CREATE TRIGGER \"it_$attribute.name\" INSTEAD OF INSERT ON $attribute.capsule$.\"$attribute.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name\"();
 ~*/
     } // end of loop over attributes
 }
