@@ -76,23 +76,25 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 	    FROM
 		inserted i;
 
+		\"currentVersion\" = 0;
+
 	    SELECT
-		\"maxVersion\" = max($attribute.versionColumnName),
-		\"currentVersion\" = 0
+		    MAX($attribute.versionColumnName)
 	    FROM
-		$attribute.name;
-	    WHILE (currentVersion < maxVersion)
+		    $attribute.name
+		INTO \"maxVersion\";
+	    WHILE (\"currentVersion\" < \"maxVersion\")
 	    LOOP
-		\"currentVersion\" = currentVersion + 1;
-		UPDATE v
+		\"currentVersion\" = \"currentVersion\" + 1;
+		UPDATE $attribute.name
 		SET
-		    v.$attribute.statementTypeColumnName =
+		    $attribute.statementTypeColumnName =
 			CASE
 			    WHEN EXISTS (
 				SELECT
 				    t.$attribute.identityColumnName
 				FROM
-				    \"$anchor.capsule\".\"t$anchor.name\"(v_positor := v.$attribute.positorColumnName, $changingParameter v_positingtinepoint := v.$attribute.positingColumnName, v_reliable := v.$attribute.reliableColumnName) t
+				    \"$anchor.capsule\".\"t$anchor.name\"(v_positor := v.$attribute.positorColumnName, $changingParameter v_positingtimepoint := v.$attribute.positingColumnName, v_reliable := v.$attribute.reliableColumnName) t
 				WHERE
 				    t.$attribute.anchorReferenceName = v.$attribute.anchorReferenceName
 				$(attribute.isHistorized())? AND
@@ -148,7 +150,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		AND
 		    $(attribute.hasChecksum())? p.$attribute.checksumColumnName = v.$attribute.checksumColumnName : p.$attribute.valueColumnName = v.$attribute.valueColumnName
 		WHERE
-		    v.$attribute.versionColumnName = currentVersion;
+		    v.$attribute.versionColumnName = \"currentVersion\";
 
 		INSERT INTO \"$attribute.capsule\".\"$attribute.positName\" (
 		    $attribute.anchorReferenceName,
@@ -162,7 +164,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		FROM
 		    $attribute.name
 		WHERE
-		    $attribute.versionColumnName = currentVersion
+		    $attribute.versionColumnName = \"currentVersion\"
 		AND
 		    $attribute.statementTypeColumnName in ($statementTypes);
 
@@ -190,7 +192,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		AND
 		    $(attribute.hasChecksum())? p.$attribute.checksumColumnName = v.$attribute.checksumColumnName : p.$attribute.valueColumnName = v.$attribute.valueColumnName
 		WHERE
-		    v.$attribute.versionColumnName = currentVersion
+		    v.$attribute.versionColumnName = \"currentVersion\"
 		AND
 		    $attribute.statementTypeColumnName in ('S',$statementTypes);
 		END LOOP;
