@@ -166,7 +166,7 @@ BEGIN
     NEW.$attribute.reliableColumnName =
         coalesce(cast(
             case
-                when \"$attribute.reliabilityColumnName\" < $schema.metadata.reliableCutoff then 0
+                when NEW.$attribute.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
                 else 1
             end
        as $schema.reliableColumnType), 1);
