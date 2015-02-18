@@ -361,6 +361,9 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
 ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
+    CREATE TEMP TABLE deleted ON COMMIT DROP
+        AS SELECT OLD.*;
+
     INSERT INTO $attribute.capsule$.\"$attribute.annexName\" (
         $(schema.METADATA)? $attribute.metadataColumnName,
         $attribute.identityColumnName,
