@@ -176,18 +176,10 @@ END;
 $$BODY$$
 LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS tu_$attribute.annexName ON $attribute.capsule$.\"$attribute.annexName\";
+DROP TRIGGER IF EXISTS trig_$attribute.annexName ON $attribute.capsule$.\"$attribute.annexName\";
 
-CREATE TRIGGER tu_$attribute.annexName
-  BEFORE UPDATE
-  ON $attribute.capsule$.\"$attribute.annexName\"
-  FOR EACH ROW
-  EXECUTE PROCEDURE func_$attribute.annexName();
-
-DROP TRIGGER IF EXISTS ti_$attribute.annexName ON $attribute.capsule$.\"$attribute.annexName\";
-
-CREATE TRIGGER ti_$attribute.annexName
-  BEFORE INSERT
+CREATE TRIGGER trig_$attribute.annexName
+  BEFORE INSERT OR UPDATE
   ON $attribute.capsule$.\"$attribute.annexName\"
   FOR EACH ROW
   EXECUTE PROCEDURE func_$attribute.annexName();
