@@ -213,6 +213,9 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
     now := $schema.metadata.now;
+    CREATE TEMP TABLE inserted ON COMMIT DROP
+        AS SELECT NEW.*;
+
    IF(OLD.$anchor.identityColumnName != NEW.$anchor.identityColumnName)
         THEN RAISE EXCEPTION 'The identity column $anchor.identityColumnName is not updatable.';
     END IF;
@@ -309,7 +312,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
 ~*/
                 }
 /*~
-            cast(CASE WHEN (OLD.$attribute.positingColumnName != NEW.$attribute.positingColumnName) THEN i.$attribute.positingColumnName ELSE @now END as $schema.metadata.positingRange),
+            cast(CASE WHEN (OLD.$attribute.positingColumnName != NEW.$attribute.positingColumnName) THEN i.$attribute.positingColumnName ELSE now END as $schema.metadata.positingRange),
             CASE WHEN (OLD.$schema.metadata.positorSuffix != NEW.$schema.metadata.positorSuffix) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
             CASE
                 WHEN i.$attribute.valueColumnName is null THEN $schema.metadata.deleteReliability
