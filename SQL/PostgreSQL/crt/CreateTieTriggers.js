@@ -18,10 +18,9 @@ while (tie = schema.nextTie()) {
 -- Insert trigger -----------------------------------------------------------------------------------------------------
 -- it$tie.name instead of INSERT trigger on $tie.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_$tie.name\"()
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
-	CREATE TRIGGER \"$tie.capsule\".\"it_$tie.name\" ON \"$tie.capsule\".\"$tie.name\"
 	BEGIN
 	    SET NOCOUNT ON;
 	    DECLARE \"now\" $schema.metadata.chronon;
@@ -372,17 +371,23 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_$tie.name\"()
 	$$BODY$$
     LANGUAGE plpgsql;
 
+-- Insert trigger -----------------------------------------------------------------------------------------------------
+-- it_$tie.name instead of INSERT trigger on $tie.name
+-----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"it_$tie.name\" ON $tie.capsule$.\"$tie.name\";
+CREATE TRIGGER \"it_$tie.name\" INSTEAD OF INSERT ON $tie.capsule$.\"$tie.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $tie.capsule$.\"if_$tie.name\"();
+
 ~*/
 // Here comes the trigger on the latest view, using the trigger above
 /*~
 -- Insert trigger -----------------------------------------------------------------------------------------------------
 -- it_l$tie.name instead of INSERT trigger on l$tie.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_l$tie.name\"()
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
-	DROP TRIGGER IF EXISTS \"$tie.capsule\".\"it_l$tie.name\" ON \"$tie.capsule\".\"l$tie.name\";
-	CREATE TRIGGER \"$tie.capsule\".\"it_l$tie.name\" ON \"$tie.capsule\".\"l$tie.name\"
 	BEGIN
 	    SET NOCOUNT ON;
 	    DECLARE \"now\" $schema.metadata.chronon;
@@ -429,6 +434,14 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_l$tie.name\"()
 	END;
 	$$BODY$$
 	LANGUAGE plpgsql;
+
+-- Insert trigger -----------------------------------------------------------------------------------------------------
+-- it_l$tie.name instead of INSERT trigger on l$tie.name
+-----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"it_l$tie.name\" ON $tie.capsule$.\"l$tie.name\";
+CREATE TRIGGER \"it_l$tie.name\" INSTEAD OF INSERT ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $tie.capsule$.\"if_l$tie.name\"();
 ~*/
     if(tie.hasMoreValues()) {
 /*~
@@ -439,11 +452,9 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"it_l$tie.name\"()
 -- UPDATE trigger -----------------------------------------------------------------------------------------------------
 -- ut_l$tie.name instead of UPDATE trigger on l$tie.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.\"ut_l$tie.name\"()
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
-	DROP TRIGGER IF EXISTS \"$tie.capsule\".\"it_l$tie.name\" ON \"$tie.capsule\".\"l$tie.name\";
-	CREATE TRIGGER \"$tie.capsule\".\"it_l$tie.name\" ON \"$tie.capsule\".\"l$tie.name\"
 	BEGIN
 	    SET NOCOUNT ON;
 	    DECLARE \"now\" $schema.metadata.chronon;
@@ -518,6 +529,14 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"ut_l$tie.name\"()
 	END;
 	$$BODY$$
 	LANGUAGE plpgsql;
+
+-- UPDATE trigger -----------------------------------------------------------------------------------------------------
+-- ut_l$tie.name instead of UPDATE trigger on l$tie.name
+-----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"ut_l$tie.name\" ON $tie.capsule$.\"l$tie.name\";
+CREATE TRIGGER \"ut_l$tie.name\" INSTEAD OF UPDATE ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $tie.capsule$.\"uf_l$tie.name\"();
 ~*/
     }
 /*~
@@ -527,11 +546,9 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"ut_l$tie.name\"()
 -- DELETE trigger -----------------------------------------------------------------------------------------------------
 -- dt_l$tie.name instead of DELETE trigger on l$tie.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.\"dt_l$tie.name\"()
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"df_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
-	DROP TRIGGER IF EXISTS \"$tie.capsule\".\"dt_l$tie.name\" ON \"$tie.capsule\".\"l$tie.name\";
-	CREATE TRIGGER \"$tie.capsule\".\"dt_l$tie.name\" ON \"$tie.capsule\".\"l$tie.name\"
 	BEGIN
 	    SET NOCOUNT ON;
 	    DECLARE \"now\" $schema.metadata.chronon;
@@ -555,5 +572,13 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"dt_l$tie.name\"()
 	END;
 	$$BODY$$
 	LANGUAGE plpgsql;
+
+-- DELETE trigger -----------------------------------------------------------------------------------------------------
+-- dt_l$tie.name instead of DELETE trigger on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"dt_l$tie.name\" ON $tie.capsule$.\"l$tie.name\";
+CREATE TRIGGER \"dt_l$tie.name\" INSTEAD OF DELETE ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $tie.capsule$.\"df_l$tie.name\"();
 ~*/
 }
