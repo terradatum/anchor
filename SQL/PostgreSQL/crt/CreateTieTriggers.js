@@ -21,12 +21,12 @@ while (tie = schema.nextTie()) {
 CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
+	DECLARE \"now\" $schema.metadata.chronon;
+	\"maxVersion\" int;
+	\"currentVersion\" int;
 	BEGIN
-	    SET NOCOUNT ON;
-	    DECLARE \"now\" $schema.metadata.chronon;
 	    now := $schema.metadata.now;
-	    DECLARE \"maxVersion\" int;
-	    DECLARE \"currentVersion\" int;
+	    
 	    CREATE TEMP TABLE inserted (
 		$(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
 		$(tie.isHistorized())? $tie.changingColumnName $tie.timeRange not null,
@@ -133,7 +133,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    }
 		}
 	/*~;~*/
-		var changingParameter = tie.isHistorized() ? 'v.' + tie.changingColumnName : 'DEFAULT';
+	    var changingParameter = tie.isHistorized() ? 'v_changingtimepoint := v.' + tie.changingColumnName + ', ' : '';
 		var statementTypes = "'N'";
 		if(tie.isAssertive())
 		    statementTypes += ",'D'";
@@ -146,17 +146,17 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 	    FROM
 		inserted;
 	    WHILE (currentVersion < maxVersion)
-	    BEGIN
-		SET currentVersion = currentVersion + 1;
+	    LOOP
+		\"currentVersion\" = \"currentVersion\" + 1;
 		UPDATE v
 		SET
 		    v.$tie.statementTypeColumnName =
 			CASE
 			    WHEN EXISTS (
-				SELECT TOP 1
+				SELECT
 				    t.$tie.identityColumnName
 				FROM
-				    \"$tie.capsule\".\"t$tie.name\"(v.$tie.positorColumnName, $changingParameter, v.$tie.positingColumnName, 1) t
+				    \"$tie.capsule\".\"t$tie.name\"(v_positor := v.$tie.positorColumnName, $changingParameter v_positingtimepoint :=v.$tie.positingColumnName, 1) t
 				WHERE
 				    t.$tie.reliabilityColumnName = v.$tie.reliabilityColumnName
 				$(tie.isHistorized())? AND
@@ -169,7 +169,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 	~*/
 		}
 	/*~
-			    ) 
+			    LIMIT 1) 
 			    THEN 'D' -- duplicate assertion    
 			    WHEN p.$tie.identityColumnName is not null
 			    THEN 'S' -- duplicate statement
@@ -180,7 +180,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 			    SELECT
 				COUNT(*)
 			    FROM (
-				SELECT TOP 1
+				(SELECT
 	~*/
 		    while(role = tie.nextValue()) {
 	/*~
@@ -226,8 +226,9 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 				ORDER BY
 				    pre.$tie.changingColumnName DESC,
 				    pre.$tie.positingColumnName DESC
+				LIMIT 1) 
 				UNION
-				SELECT TOP 1
+				(SELECT 
 	~*/
 		    while(role = tie.nextValue()) {
 	/*~
@@ -273,6 +274,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 				ORDER BY
 				    fol.$tie.changingColumnName ASC,
 				    fol.$tie.positingColumnName DESC
+			    LIMIT 1) 
 			    ) s
 			    WHERE
 	~*/
@@ -366,6 +368,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    v.$tie.versionColumnName = currentVersion
 		AND
 		    v.$tie.statementTypeColumnName in ('S',$statementTypes);
+		END LOOP;
 	RETURN null;
 	END;
 	$$BODY$$
@@ -388,10 +391,9 @@ CREATE TRIGGER \"it_$tie.name\" INSTEAD OF INSERT ON $tie.capsule$.\"$tie.name\"
 CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
+	DECLARE \"now\" $schema.metadata.chronon;
 	BEGIN
-	    SET NOCOUNT ON;
-	    DECLARE \"now\" $schema.metadata.chronon;
-	    SET now = $schema.metadata.now;
+	    now := $schema.metadata.now;
 	    INSERT INTO \"$tie.capsule\".\"$tie.name\" (
 		$(schema.METADATA)? $tie.metadataColumnName,
 		$(tie.isHistorized())? $tie.changingColumnName,
@@ -455,16 +457,16 @@ CREATE TRIGGER \"it_l$tie.name\" INSTEAD OF INSERT ON $tie.capsule$.\"l$tie.name
 CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
+	DECLARE \"now\" $schema.metadata.chronon;
 	BEGIN
-	    SET NOCOUNT ON;
-	    DECLARE \"now\" $schema.metadata.chronon;
-	    SET now = $schema.metadata.now;
+	    now := $schema.metadata.now;
 	~*/
 		if(tie.hasMoreIdentifiers()) {
 		    while(role = tie.nextIdentifier()) {
 	/*~
 	    IF(UPDATE($role.columnName))
-		RAISERROR('The identity column $role.columnName is not updatable.', 16, 1);
+			THEN RAISE EXCEPTION 'The identity column $role.columnName is not updatable.';
+		END IF;
 	~*/
 		    }
 		}
@@ -549,10 +551,9 @@ CREATE TRIGGER \"ut_l$tie.name\" INSTEAD OF UPDATE ON $tie.capsule$.\"l$tie.name
 CREATE OR REPLACE FUNCTION $tie.capsule$.\"df_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
+	DECLARE \"now\" $schema.metadata.chronon;
 	BEGIN
-	    SET NOCOUNT ON;
-	    DECLARE \"now\" $schema.metadata.chronon;
-	    SET now = $schema.metadata.now;
+	    now := $schema.metadata.now;
 	    INSERT INTO \"$tie.capsule\".\"$tie.annexName\" (
 		$(schema.METADATA)? $tie.metadataColumnName,
 		$tie.identityColumnName,
