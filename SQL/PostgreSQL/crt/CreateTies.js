@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS $tie.capsule$.\"$tie.annexName\" (
 --    end
 --as tinyint), 1) persisted
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION func_$tie.annexName()
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"func_$tie.annexName\"()
   RETURNS trigger AS
 $$BODY$$
 BEGIN
@@ -155,12 +155,12 @@ END;
 $$BODY$$
 LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trig_$tie.annexName ON $tie.capsule$.\"$tie.annexName\";
+DROP TRIGGER IF EXISTS \"trig_$tie.annexName\" ON $tie.capsule$.\"$tie.annexName\";
 
-CREATE TRIGGER trig_$tie.annexName
+CREATE TRIGGER \"trig_$tie.annexName\"
   BEFORE INSERT OR UPDATE
   ON $tie.capsule$.\"$tie.annexName\"
   FOR EACH ROW
-  EXECUTE PROCEDURE func_$tie.annexName();
+  EXECUTE PROCEDURE $tie.capsule$.\"func_$tie.annexName\"();
 ~*/
 }

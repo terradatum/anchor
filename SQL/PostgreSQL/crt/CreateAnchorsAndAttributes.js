@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.annexName\" (
 --    end
 --as tinyint), 1) persisted
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION func_$attribute.annexName()
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"func_$attribute.annexName\"()
   RETURNS trigger AS
 $$BODY$$
 BEGIN
@@ -176,12 +176,12 @@ END;
 $$BODY$$
 LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trig_$attribute.annexName ON $attribute.capsule$.\"$attribute.annexName\";
+DROP TRIGGER IF EXISTS \"trig_$attribute.annexName\" ON $attribute.capsule$.\"$attribute.annexName\";
 
-CREATE TRIGGER trig_$attribute.annexName
+CREATE TRIGGER \"trig_$attribute.annexName\"
   BEFORE INSERT OR UPDATE
   ON $attribute.capsule$.\"$attribute.annexName\"
   FOR EACH ROW
-  EXECUTE PROCEDURE func_$attribute.annexName();
+  EXECUTE PROCEDURE $anchor.capsule$.\"func_$attribute.annexName\"();
 ~*/
 }}
