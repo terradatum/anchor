@@ -27,7 +27,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 	BEGIN
 	    now := $schema.metadata.now;
 	    
-	    CREATE TEMP TABLE inserted (
+	    CREATE TEMP TABLE inserted2  (
 		$(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
 		$(tie.isHistorized())? $tie.changingColumnName $tie.timeRange not null,
 		$tie.versionColumnName bigint not null,
@@ -70,11 +70,11 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    }
 	/*~
 		)
-	    );
-	    INSERT INTO inserted
+	    ) ON COMMIT DROP;
+	    INSERT INTO inserted2
 	    SELECT
-		$(schema.METADATA)? ISNULL(i.$tie.metadataColumnName, 0),
-		$(tie.isHistorized())? ISNULL(i.$tie.changingColumnName, now),
+		$(schema.METADATA)? COALESCE(i.$tie.metadataColumnName, 0),
+		$(tie.isHistorized())? COALESCE(i.$tie.changingColumnName, now),
 		DENSE_RANK() OVER (
 		    PARTITION BY
 			i.$tie.positorColumnName,
@@ -95,14 +95,14 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    }
 	/*~
 		    ORDER BY
-			$(tie.isHistorized())? ISNULL(i.$tie.changingColumnName, now),
+			$(tie.isHistorized())? COALESCE(i.$tie.changingColumnName, now),
 			i.$tie.positingColumnName ASC,
 			i.$tie.reliabilityColumnName ASC                
 		),
 		'X',
-		ISNULL(i.$tie.positorColumnName, 0),
-		ISNULL(i.$tie.positingColumnName, now),
-		ISNULL(i.$tie.reliabilityColumnName, 
+		COALESCE(i.$tie.positorColumnName, 0),
+		COALESCE(i.$tie.positingColumnName, now),
+		COALESCE(i.$tie.reliabilityColumnName, 
 		CASE i.$tie.reliableColumnName
 		    WHEN 0 THEN $schema.metadata.deleteReliability
 		    ELSE $schema.metadata.reliableCutoff
@@ -115,7 +115,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		}
 	/*~
 	    FROM
-		inserted i
+		inserted2 i
 	    WHERE
 	~*/
 		if(tie.hasMoreIdentifiers()) {
@@ -144,7 +144,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		maxVersion = max($tie.versionColumnName),
 		currentVersion = 0
 	    FROM
-		inserted;
+		inserted2;
 	    WHILE (currentVersion < maxVersion)
 	    LOOP
 		\"currentVersion\" = \"currentVersion\" + 1;
@@ -293,7 +293,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 			    ELSE 'N' -- new statement
 			END
 		FROM
-		    inserted v
+		    inserted2 v
 		LEFT JOIN
 		    \"$tie.capsule\".\"$tie.positName\" p
 		ON
@@ -330,7 +330,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    }
 	/*~
 		FROM
-		    inserted
+		    inserted2
 		WHERE
 		    $tie.versionColumnName = currentVersion
 		AND
@@ -350,7 +350,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    v.$tie.positingColumnName,
 		    v.$tie.reliabilityColumnName
 		FROM
-		    inserted v
+		    inserted2 v
 		JOIN
 		    \"$tie.capsule\".\"$tie.positName\" p
 		ON
@@ -394,6 +394,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name\"()
 	DECLARE \"now\" $schema.metadata.chronon;
 	BEGIN
 	    now := $schema.metadata.now;
+	    CREATE TEMP TABLE inserted ON COMMIT DROP AS SELECT NEW.*;
 	    INSERT INTO \"$tie.capsule\".\"$tie.name\" (
 		$(schema.METADATA)? $tie.metadataColumnName,
 		$(tie.isHistorized())? $tie.changingColumnName,
@@ -414,7 +415,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name\"()
 	~*/
 		while (role = tie.nextRole()) {
 	/*~
-		$(role.knot)? ISNULL(i.$role.columnName, \"$role.name\".$knot.identityColumnName), : i.$role.columnName,
+		$(role.knot)? COALESCE(i.$role.columnName, \"$role.name\".$knot.identityColumnName), : i.$role.columnName,
 	~*/
 		}
 	/*~
@@ -460,6 +461,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	DECLARE \"now\" $schema.metadata.chronon;
 	BEGIN
 	    now := $schema.metadata.now;
+	    CREATE TEMP TABLE inserted ON COMMIT DROP AS SELECT NEW.*;
 	~*/
 		if(tie.hasMoreIdentifiers()) {
 		    while(role = tie.nextIdentifier()) {
@@ -491,7 +493,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	~*/
 		while (role = tie.nextRole()) {
 	/*~
-		$(role.knot)? ISNULL(i.$role.columnName, \"$role.name\".$knot.identityColumnName), : i.$role.columnName,
+		$(role.knot)? IS(i.$role.columnName, \"$role.name\".$knot.identityColumnName), : i.$role.columnName,
 	~*/
 		}
 	/*~
@@ -514,7 +516,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 			    WHEN 0 THEN $schema.metadata.deleteReliability
 			    ELSE $schema.metadata.reliableCutoff
 			END                
-		    ELSE ISNULL(i.$tie.reliabilityColumnName, $schema.metadata.reliableCutoff)
+		    ELSE COALESCE(i.$tie.reliabilityColumnName, $schema.metadata.reliableCutoff)
 		END
 	    FROM
 		inserted i~*/
