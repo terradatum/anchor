@@ -115,7 +115,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 				    $(attribute.hasChecksum())? v.$attribute.checksumColumnName : v.$attribute.valueColumnName
 				WHERE
 				    $(attribute.hasChecksum())? v.$attribute.checksumColumnName =  : v.$attribute.valueColumnName =
-					$attribute.capsule$.pre$attribute.name (
+					$attribute.capsule$.\"pre$attribute.name\" (
 					    v.$attribute.anchorReferenceName,
 					    v.$attribute.positorColumnName,
 					    v.$attribute.changingColumnName,
@@ -126,7 +126,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 				    $(attribute.hasChecksum())? v.$attribute.checksumColumnName : v.$attribute.valueColumnName
 				WHERE
 				    $(attribute.hasChecksum())? v.$attribute.checksumColumnName = : v.$attribute.valueColumnName =
-					$attribute.capsule$.fol$attribute.name (
+					$attribute.capsule$.\"fol$attribute.name\" (
 					    v.$attribute.anchorReferenceName,
 					    v.$attribute.positorColumnName,
 					    v.$attribute.changingColumnName,
