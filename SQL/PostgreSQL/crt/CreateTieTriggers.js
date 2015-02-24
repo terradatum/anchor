@@ -26,7 +26,10 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 	\"currentVersion\" int;
 	BEGIN
 	    now := $schema.metadata.now;
-	    
+
+        CREATE TEMP TABLE ins ON COMMIT DROP
+            AS SELECT NEW.*;
+
 	    CREATE TEMP TABLE inserted2  (
 		$(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
 		$(tie.isHistorized())? $tie.changingColumnName $tie.timeRange not null,
@@ -115,7 +118,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		}
 	/*~
 	    FROM
-		inserted2 i
+		ins i
 	    WHERE
 	~*/
 		if(tie.hasMoreIdentifiers()) {
@@ -141,11 +144,11 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		    statementTypes += ",'R'";
 	/*~
 	    SELECT
-		maxVersion = max($tie.versionColumnName),
-		currentVersion = 0
+		\"maxVersion\" = max($tie.versionColumnName),
+		\"currentVersion\" = 0
 	    FROM
 		inserted2;
-	    WHILE (currentVersion < maxVersion)
+	    WHILE (\"currentVersion\" < \"maxVersion\")
 	    LOOP
 		\"currentVersion\" = \"currentVersion\" + 1;
 		UPDATE v
