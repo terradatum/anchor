@@ -143,23 +143,24 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		if(tie.isHistorized() && !tie.isIdempotent())
 		    statementTypes += ",'R'";
 	/*~
+		\"currentVersion\" := 0;
 	    SELECT
-		\"maxVersion\" = max($tie.versionColumnName),
-		\"currentVersion\" = 0
+		    max($tie.versionColumnName)
 	    FROM
-		inserted2;
+		inserted2
+		INTO \"maxVersion\";
 	    WHILE (\"currentVersion\" < \"maxVersion\")
 	    LOOP
 		\"currentVersion\" = \"currentVersion\" + 1;
-		UPDATE v
+		UPDATE inserted2
 		SET
-		    v.$tie.statementTypeColumnName =
+		    $tie.statementTypeColumnName =
 			CASE
 			    WHEN EXISTS (
 				SELECT
 				    t.$tie.identityColumnName
 				FROM
-				    \"$tie.capsule\".\"t$tie.name\"(v_positor := v.$tie.positorColumnName, $changingParameter v_positingtimepoint :=v.$tie.positingColumnName, 1) t
+				    \"$tie.capsule\".\"t$tie.name\"(v_positor := v.$tie.positorColumnName, $changingParameter v_positingtimepoint :=v.$tie.positingColumnName, v_reliable := 1::smallint) t
 				WHERE
 				    t.$tie.reliabilityColumnName = v.$tie.reliabilityColumnName
 				$(tie.isHistorized())? AND
@@ -311,7 +312,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		$(tie.isHistorized())? AND
 		    $(tie.isHistorized())? p.$tie.changingColumnName = v.$tie.changingColumnName
 		WHERE
-		    v.$tie.versionColumnName = currentVersion;
+		    v.$tie.versionColumnName = \"currentVersion\";
 
 		INSERT INTO \"$tie.capsule\".\"$tie.positName\" (
 		    $(tie.isHistorized())? $tie.changingColumnName,
@@ -335,7 +336,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		FROM
 		    inserted2
 		WHERE
-		    $tie.versionColumnName = currentVersion
+		    $tie.versionColumnName = \"currentVersion\"
 		AND
 		    $tie.statementTypeColumnName in ($statementTypes);
 
@@ -368,7 +369,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name\"()
 		$(tie.isHistorized())? AND
 		    $(tie.isHistorized())? p.$tie.changingColumnName = v.$tie.changingColumnName
 		WHERE
-		    v.$tie.versionColumnName = currentVersion
+		    v.$tie.versionColumnName = \"currentVersion\"
 		AND
 		    v.$tie.statementTypeColumnName in ('S',$statementTypes);
 		END LOOP;

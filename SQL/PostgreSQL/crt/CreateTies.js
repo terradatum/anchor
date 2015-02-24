@@ -145,7 +145,7 @@ BEGIN
     NEW.$tie.reliableColumnName =
         coalesce(cast(
             case
-                when $tie.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
+                when NEW.$tie.reliabilityColumnName < $schema.metadata.reliableCutoff then 0
                 else 1
             end
        as $schema.reliableColumnType), 1);
