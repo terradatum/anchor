@@ -31,6 +31,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 	DECLARE \"maxVersion\" int;
 	DECLARE \"currentVersion\" int;
 	BEGIN
+	CREATE TEMP TABLE inserted_$attribute.name ON COMMIT DROP AS SELECT NEW.*;
 	CREATE TEMP TABLE $attribute.name (
 		$attribute.anchorReferenceName $anchor.identity not null,
 		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
@@ -74,7 +75,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		),
 		'X'
 	    FROM
-		inserted i;
+		inserted_$attribute.name i;
 
 		\"currentVersion\" = 0;
 
