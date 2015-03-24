@@ -470,7 +470,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 		if(tie.hasMoreIdentifiers()) {
 		    while(role = tie.nextIdentifier()) {
 	/*~
-	    IF(UPDATE($role.columnName))
+	    IF(NEW.$role.columnName <> OLD.$role.columnName)
 			THEN RAISE EXCEPTION 'The identity column $role.columnName is not updatable.';
 		END IF;
 	~*/
@@ -493,7 +493,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	    )
 	    SELECT
 		$(schema.METADATA)? i.$tie.metadataColumnName,
-		$(tie.isHistorized())? cast(CASE WHEN UPDATE($tie.changingColumnName) THEN i.$tie.changingColumnName ELSE now END as $tie.timeRange),
+		$(tie.isHistorized())? cast(CASE WHEN (NEW.$tie.changingColumnName <> OLD.$tie.changingColumnName) THEN i.$tie.changingColumnName ELSE now END as $tie.timeRange),
 	~*/
 		while (role = tie.nextRole()) {
 	/*~
@@ -501,8 +501,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	~*/
 		}
 	/*~
-		CASE WHEN UPDATE($tie.positorColumnName) THEN i.$tie.positorColumnName ELSE 0 END,
-		cast(CASE WHEN UPDATE($tie.positingColumnName) THEN i.$tie.positingColumnName ELSE now END as $schema.metadata.positingRange),
+		CASE WHEN (NEW.$tie.positorColumnName <> OLD.$tie.positorColumnName) THEN i.$tie.positorColumnName ELSE 0 END,
+		cast(CASE WHEN (NEW.$tie.positingColumnName <> OLD.$tie.positingColumnName) THEN i.$tie.positingColumnName ELSE now END as $schema.metadata.positingRange),
 		CASE 
 		    WHEN
 	~*/
@@ -514,8 +514,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 		}
 	/*~
 		    THEN $schema.metadata.deleteReliability
-		    WHEN UPDATE($tie.reliabilityColumnName) THEN i.$tie.reliabilityColumnName 
-		    WHEN UPDATE($tie.reliableColumnName) THEN 
+		    WHEN (NEW.$tie.reliabilityColumnName <> OLD.$tie.reliabilityColumnName) THEN i.$tie.reliabilityColumnName 
+		    WHEN (NEW.$tie.reliableColumnName <> (OLD.$tie.reliableColumnName) THEN 
 			CASE i.$tie.reliableColumnName
 			    WHEN 0 THEN $schema.metadata.deleteReliability
 			    ELSE $schema.metadata.reliableCutoff
