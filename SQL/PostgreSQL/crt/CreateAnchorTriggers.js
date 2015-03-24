@@ -364,7 +364,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
 ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
-    CREATE TEMP TABLE deleted ON COMMIT DROP
+    CREATE TEMP TABLE deleted_$attribute.name ON COMMIT DROP
         AS SELECT OLD.*;
 
     INSERT INTO $attribute.capsule$.\"$attribute.annexName\" (
@@ -381,7 +381,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
         now,
         $schema.metadata.deleteReliability
     FROM
-        deleted d
+        deleted_$attribute.name d
     JOIN
         $attribute.capsule$.\"$attribute.annexName\" p
     ON
