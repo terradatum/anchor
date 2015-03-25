@@ -497,7 +497,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	~*/
 		while (role = tie.nextRole()) {
 	/*~
-		$(role.knot)? IS(i.$role.columnName, \"$role.name\".$knot.identityColumnName), : i.$role.columnName,
+		$(role.knot)? COALESCE(i.$role.columnName, \"$role.name\".$knot.identityColumnName), : i.$role.columnName,
 	~*/
 		}
 	/*~
@@ -515,7 +515,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	/*~
 		    THEN $schema.metadata.deleteReliability
 		    WHEN (NEW.$tie.reliabilityColumnName <> OLD.$tie.reliabilityColumnName) THEN i.$tie.reliabilityColumnName 
-		    WHEN (NEW.$tie.reliableColumnName <> (OLD.$tie.reliableColumnName) THEN 
+		    WHEN (NEW.$tie.reliableColumnName <> OLD.$tie.reliableColumnName) THEN 
 			CASE i.$tie.reliableColumnName
 			    WHEN 0 THEN $schema.metadata.deleteReliability
 			    ELSE $schema.metadata.reliableCutoff
