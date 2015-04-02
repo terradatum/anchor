@@ -22,17 +22,53 @@ while (anchor = schema.nextAnchor()) {
             statementTypes += ",'R'";
         var changingParameter = attribute.isHistorized() ? 'v_changingtimepoint := v.' + attribute.changingColumnName + ', ' : '';
 /*~
--- Insert trigger -----------------------------------------------------------------------------------------------------
--- if_$attribute.name instead of INSERT trigger on $attribute.name
+-- Insert trigger Before Statement ------------------------------------------------------------------------------------
+-- if_$attribute.name$_pre instead of INSERT trigger on $attribute.name
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_pre\"()
+	RETURNS trigger AS 
+	$$BODY$$
+	BEGIN
+	CREATE TEMP TABLE inserted_$attribute.name (
+		$attribute.anchorReferenceName $anchor.identity not null,
+		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
+		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange not null,
+		$attribute.positorColumnName $schema.metadata.positorRange not null,
+		$attribute.positingColumnName $schema.metadata.positingRange not null,
+		$attribute.reliabilityColumnName $schema.metadata.reliabilityRange not null,
+		$attribute.reliableColumnName smallint not null,
+		$(attribute.knotRange)? $attribute.valueColumnName $attribute.knot.identity not null, : $attribute.valueColumnName $attribute.dataRange not null,
+		$(attribute.hasChecksum())? $attribute.checksumColumnName varbinary(16) not null,
+		primary key(
+		    $attribute.anchorReferenceName
+		)
+	) ON COMMIT DROP;
+	END
+	$$BODY$$
+	LANGUAGE plpgsql;
+
+-- Insert trigger Instead of Row --------------------------------------------------------------------------------------
+-- if_$attribute.name_post instead of INSERT trigger on $attribute.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
+	RETURNS trigger AS 
+	$$BODY$$
+	BEGIN
+    INSERT INTO inserted_$attribute.name select NEW.*;
+    END
+	$$BODY$$
+	LANGUAGE plpgsql;
+
+-- Insert trigger After Statement -------------------------------------------------------------------------------------
+-- if_$attribute.name$_post instead of INSERT trigger on $attribute.name
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	DECLARE \"maxVersion\" int;
 	DECLARE \"currentVersion\" int;
 	BEGIN
-	CREATE TEMP TABLE inserted_$attribute.name ON COMMIT DROP AS SELECT NEW.*;
-	CREATE TEMP TABLE $attribute.name (
+	CREATE TEMP TABLE tmp_$attribute.name (
 		$attribute.anchorReferenceName $anchor.identity not null,
 		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
 		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange not null,
@@ -50,7 +86,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		    $attribute.anchorReferenceName
 		)
 	) ON COMMIT DROP;
-	INSERT INTO $attribute.name
+	INSERT INTO tmp_$attribute.name
 	    SELECT
 		i.$attribute.anchorReferenceName,
 		$(schema.METADATA)? i.$attribute.metadataColumnName,
@@ -82,12 +118,12 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 	    SELECT
 		    MAX($attribute.versionColumnName)
 	    FROM
-		    $attribute.name
+		    tmp_$attribute.name
 		INTO \"maxVersion\";
 	    WHILE (\"currentVersion\" < \"maxVersion\")
 	    LOOP
 		\"currentVersion\" = \"currentVersion\" + 1;
-		UPDATE $attribute.name
+		UPDATE tmp_$attribute.name
 		SET
 		    $attribute.statementTypeColumnName =
 			CASE
@@ -141,7 +177,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 			    ELSE 'N' -- new statement
 			END
 		FROM
-		    $attribute.name v
+		    tmp_$attribute.name v
 		LEFT JOIN
 		    \"$attribute.capsule\".\"$attribute.positName\" p
 		ON
@@ -163,7 +199,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		    $(attribute.isHistorized())? $attribute.changingColumnName,
 		    $attribute.valueColumnName
 		FROM
-		    $attribute.name
+		    tmp_$attribute.name
 		WHERE
 		    $attribute.versionColumnName = \"currentVersion\"
 		AND
@@ -183,7 +219,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		    v.$attribute.positingColumnName,
 		    v.$attribute.reliabilityColumnName
 		FROM
-		    $attribute.name v
+		    tmp_$attribute.name v
 		JOIN
 		    \"$attribute.capsule\".\"$attribute.positName\" p
 		ON
@@ -197,18 +233,29 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 		AND
 		    $attribute.statementTypeColumnName in ('S',$statementTypes);
 		END LOOP;
+
+	DROP TABLE inserted_$attribute.name;
+	DROP TABLE tmp_$attribute.name;
     RETURN null;
 	END;
 	$$BODY$$
 	LANGUAGE plpgsql;
 
--- Insert trigger -----------------------------------------------------------------------------------------------------
+-- Insert triggers ----------------------------------------------------------------------------------------------------
 -- it_l$anchor.name instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"it_$attribute.name$_pre\" ON $attribute.capsule$.\"$attribute.name\";
 DROP TRIGGER IF EXISTS \"it_$attribute.name\" ON $attribute.capsule$.\"$attribute.name\";
+DROP TRIGGER IF EXISTS \"it_$attribute.name$_post\" ON $attribute.capsule$.\"$attribute.name\";
+CREATE TRIGGER \"it_$attribute.name$_pre\" BEFORE INSERT ON $attribute.capsule$.\"$attribute.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name$_pre\"();
 CREATE TRIGGER \"it_$attribute.name\" INSTEAD OF INSERT ON $attribute.capsule$.\"$attribute.name\"
     FOR EACH ROW
     EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name\"();
+CREATE TRIGGER \"it_$attribute.name$_post\" AFTER INSERT ON $attribute.capsule$.\"$attribute.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name$_post\"();
 ~*/
     } // end of loop over attributes
 }
