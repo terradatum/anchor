@@ -37,6 +37,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_pre\"()
         $attribute.positorColumnName $schema.metadata.positorRange null,
         $attribute.positingColumnName $schema.metadata.positingRange null,
         $attribute.reliabilityColumnName $schema.metadata.reliabilityRange null,
+        $attribute.reliableColumnName $schema.reliableColumnType null,
 ~*/
             if(attribute.isKnotted()) {
                 knot = attribute.knot;
@@ -80,6 +81,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
         NEW.$attribute.positorColumnName,
         NEW.$attribute.positingColumnName,
         NEW.$attribute.reliabilityColumnName,
+        NEW.$attribute.reliableColumnName,
 ~*/
             if(attribute.isKnotted()) {
                 knot = attribute.knot;

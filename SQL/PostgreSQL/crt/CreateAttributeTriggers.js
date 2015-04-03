@@ -30,15 +30,15 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_pre\"()
 	$$BODY$$
 	BEGIN
 	CREATE TEMP TABLE inserted_$attribute.name (
-		$attribute.anchorReferenceName $anchor.identity not null,
-		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
-		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange not null,
-		$attribute.positorColumnName $schema.metadata.positorRange not null,
-		$attribute.positingColumnName $schema.metadata.positingRange not null,
-		$attribute.reliabilityColumnName $schema.metadata.reliabilityRange not null,
-		$attribute.reliableColumnName smallint not null,
-		$(attribute.knotRange)? $attribute.valueColumnName $attribute.knot.identity not null, : $attribute.valueColumnName $attribute.dataRange not null,
-		$(attribute.hasChecksum())? $attribute.checksumColumnName varbinary(16) not null,
+		$attribute.anchorReferenceName $anchor.identity null,
+		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
+		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange null,
+		$attribute.positorColumnName $schema.metadata.positorRange null,
+		$attribute.positingColumnName $schema.metadata.positingRange null,
+		$attribute.reliabilityColumnName $schema.metadata.reliabilityRange null,
+		$attribute.reliableColumnName smallint null,
+		$(attribute.knotRange)? $attribute.valueColumnName $attribute.knot.identity null, : $attribute.valueColumnName $attribute.dataRange not null,
+		$(attribute.hasChecksum())? $attribute.checksumColumnName varbinary(16) null,
 		primary key(
 		    $attribute.anchorReferenceName
 		)
