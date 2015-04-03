@@ -43,7 +43,8 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_pre\"()
 		    $attribute.anchorReferenceName
 		)
 	) ON COMMIT DROP;
-	END
+	RETURN null;
+    END;
 	$$BODY$$
 	LANGUAGE plpgsql;
 
@@ -54,8 +55,19 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	BEGIN
-    INSERT INTO inserted_$attribute.name select NEW.*;
-    END
+    INSERT INTO inserted_$attribute.name SELECT
+		NEW.$attribute.anchorReferenceName
+		$(schema.METADATA)? ,NEW.$attribute.metadataColumnName
+		$(attribute.isHistorized())? ,NEW.$attribute.changingColumnName
+		,NEW.$attribute.positorColumnName
+		,NEW.$attribute.positingColumnName
+		,NEW.$attribute.reliabilityColumnName
+		,NEW.$attribute.reliableColumnName
+		$(attribute.knotRange)? ,NEW.$attribute.valueColumnName : ,NEW.$attribute.valueColumnName
+		$(attribute.hasChecksum())? ,NEW.$attribute.checksumColumnName
+    ;
+    RETURN null;
+    END;
 	$$BODY$$
 	LANGUAGE plpgsql;
 

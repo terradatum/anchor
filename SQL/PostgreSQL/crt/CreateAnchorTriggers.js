@@ -16,36 +16,123 @@ var anchor, knot, attribute;
 while (anchor = schema.nextAnchor()) {
     if(anchor.hasMoreAttributes()) {
 /*~
--- INSERT function -----------------------------------------------------------------------------------------------------
--- if_l$anchor.name instead of INSERT trigger function on l$anchor.name
+-- Insert trigger Before Statement ------------------------------------------------------------------------------------
+-- if_l$anchor.name$_pre instead of INSERT trigger on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_pre\"()
+  RETURNS trigger AS
+  $$BODY$$
+  BEGIN
+      CREATE TEMP TABLE inserted_l$anchor.name (
+        $schema.metadata.positorSuffix $schema.metadata.positorRange null,
+        $schema.metadata.reliableSuffix $schema.reliableColumnType null,
+        $anchor.identityColumnName $anchor.identity null,
+        $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType null,
+~*/
+        while (attribute = anchor.nextAttribute()) {
+/*~
+        $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity null,
+        $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
+        $(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange null,
+        $attribute.positorColumnName $schema.metadata.positorRange null,
+        $attribute.positingColumnName $schema.metadata.positingRange null,
+        $attribute.reliabilityColumnName $schema.metadata.reliabilityRange null,
+~*/
+            if(attribute.isKnotted()) {
+                knot = attribute.knot;
+/*~
+        $attribute.knotValueColumnName $knot.dataRange null,
+        $(knot.hasChecksum())? $attribute.knotChecksumColumnName varbinary(16) null,
+        $(schema.METADATA)? $attribute.knotMetadataColumnName $schema.metadata.metadataType null,
+        $attribute.valueColumnName $knot.identity null$(anchor.hasMoreAttributes())?,
+~*/
+            }
+            else {
+/*~
+        $attribute.valueColumnName $attribute.dataRange null$(anchor.hasMoreAttributes())?,
+~*/
+            }
+        }
+/*~
+    ) ON COMMIT DROP;
+    RETURN null;
+  END;
+  $$BODY$$
+  Language plpgsql;
+-- Insert trigger Instead of Row --------------------------------------------------------------------------------------
+-- if_l$anchor.name instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
     RETURNS trigger AS 
     $$BODY$$
+    BEGIN
+    INSERT INTO inserted_l$anchor.name SELECT
+        NEW.$schema.metadata.positorSuffix,
+        NEW.$schema.metadata.reliableSuffix,
+        NEW.$anchor.identityColumnName,
+        $(schema.METADATA)? NEW.$anchor.metadataColumnName,
+~*/
+        while (attribute = anchor.nextAttribute()) {
+/*~
+        $(schema.IMPROVED)? NEW.$attribute.anchorReferenceName,
+        $(schema.METADATA)? NEW.$attribute.metadataColumnName,
+        $(attribute.isHistorized())? NEW.$attribute.changingColumnName,
+        NEW.$attribute.positorColumnName,
+        NEW.$attribute.positingColumnName,
+        NEW.$attribute.reliabilityColumnName,
+~*/
+            if(attribute.isKnotted()) {
+                knot = attribute.knot;
+/*~
+        NEW.$attribute.knotValueColumnName,
+        $(knot.hasChecksum())? NEW.$attribute.knotChecksumColumnName,
+        $(schema.METADATA)? NEW.$attribute.knotMetadataColumnName,
+        NEW.$attribute.valueColumnName$(anchor.hasMoreAttributes())?,
+~*/
+            }
+            else {
+/*~
+        NEW.$attribute.valueColumnName$(anchor.hasMoreAttributes())?,
+~*/
+            }
+        }
+/*~
+    ;
+    RETURN null;
+    END;
+    $$BODY$$
+    LANGUAGE plpgsql;
+
+-- Insert trigger After Statement ------------------------------------------------------------------------------------
+-- if_l$anchor.name$_post instead of INSERT trigger on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_post\"()
+    RETURNS trigger AS 
+    $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
-    \"id\" $anchor.identity;
     BEGIN
     now := $schema.metadata.now;
     CREATE TEMP TABLE \"$anchor.mnemonic\" (
         Row serial not null CONSTRAINT pk_row primary key,
         $anchor.identityColumnName $anchor.identity not null
     ) ON COMMIT DROP;
-    IF NEW.$anchor.identityColumnName is null
-    THEN
+
+    WITH ids as (
         INSERT INTO $anchor.capsule$.\"$anchor.name\" (
             $(schema.METADATA)? $anchor.metadataColumnName : $anchor.dummyColumnName
         )
         SELECT
-            $(schema.METADATA)? NEW.$anchor.metadataColumnName : null
-        RETURNING $anchor.identityColumnName
-        INTO id;
-        INSERT INTO \"$anchor.mnemonic\" (
-            $anchor.identityColumnName
-        )
-        VALUES (
-            id
-        );
-    END IF;
+            $(schema.METADATA)? $anchor.metadataColumnName : null
+        FROM
+            inserted_l$anchor.name i
+        WHERE
+            i.$anchor.identityColumnName is null
+        RETURNING 
+          $anchor.identityColumnName
+    )
+    INSERT INTO \"$anchor.mnemonic\" ($anchor.identityColumnName) 
+    SELECT $anchor.identityColumnName 
+    FROM ids;
 
     CREATE TEMP TABLE inserted (
         $anchor.identityColumnName $anchor.identity not null,
@@ -111,35 +198,37 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
 /*~
     FROM (
         SELECT
-            NEW.$schema.metadata.positorSuffix,
-            NEW.$schema.metadata.reliableSuffix,
-            NEW.$anchor.identityColumnName,
-            $(schema.METADATA)? NEW.$anchor.metadataColumnName,
+            $schema.metadata.positorSuffix,
+            $schema.metadata.reliableSuffix,
+            $anchor.identityColumnName,
+            $(schema.METADATA)? $anchor.metadataColumnName,
  ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
-            $(schema.IMPROVED)? NEW.$attribute.anchorReferenceName,
-            $(schema.METADATA)? NEW.$attribute.metadataColumnName,
-            $(attribute.isHistorized())? NEW.$attribute.changingColumnName,
-            NEW.$attribute.positorColumnName,
-            NEW.$attribute.positingColumnName,
-            NEW.$attribute.reliabilityColumnName,
-            NEW.$attribute.reliableColumnName,
+            $(schema.IMPROVED)? $attribute.anchorReferenceName,
+            $(schema.METADATA)? $attribute.metadataColumnName,
+            $(attribute.isHistorized())? $attribute.changingColumnName,
+            $attribute.positorColumnName,
+            $attribute.positingColumnName,
+            $attribute.reliabilityColumnName,
+            $attribute.reliableColumnName,
 ~*/
             if(attribute.isKnotted()) {
                 knot = attribute.knot;
 /*~
-            NEW.$attribute.knotValueColumnName,
-            $(knot.hasChecksum())? NEW.$attribute.knotChecksumColumnName,
-            $(schema.METADATA)? NEW.$attribute.knotMetadataColumnName,
+            $attribute.knotValueColumnName,
+            $(knot.hasChecksum())? $attribute.knotChecksumColumnName,
+            $(schema.METADATA)? $attribute.knotMetadataColumnName,
 ~*/
             }
 /*~
-            NEW.$attribute.valueColumnName,
+            $attribute.valueColumnName,
 ~*/
         }
 /*~
-            ROW_NUMBER() OVER () AS Row
+            ROW_NUMBER() OVER (PARTITION BY $anchor.identityColumnName ORDER BY $anchor.identityColumnName) AS Row
+        FROM
+          inserted_l$anchor.name
     ) i
     LEFT JOIN
         \"$anchor.mnemonic\" a
@@ -187,6 +276,9 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
             }
         }
 /*~
+    DROP TABLE inserted_l$anchor.name;
+    DROP TABLE \"$anchor.mnemonic\";
+    DROP TABLE inserted;
 
     RETURN null;
     END;
@@ -196,10 +288,18 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
 -- Insert trigger -----------------------------------------------------------------------------------------------------
 -- it_l$anchor.name instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"it_l$anchor.name$_pre\" ON $anchor.capsule$.\"l$anchor.name\";
 DROP TRIGGER IF EXISTS \"it_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\";
+DROP TRIGGER IF EXISTS \"it_l$anchor.name$_post\" ON $anchor.capsule$.\"l$anchor.name\";
+CREATE TRIGGER \"it_l$anchor.name$_pre\" BEFORE INSERT ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$_pre\"();
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
     EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name\"();
+CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$_post\"();
 ~*/
     } // end of if attributes exist
     if(anchor.hasMoreAttributes()) {
