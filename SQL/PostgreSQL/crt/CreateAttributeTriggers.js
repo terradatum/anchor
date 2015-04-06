@@ -81,6 +81,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
 	DECLARE \"currentVersion\" int;
 	BEGIN
 	CREATE TEMP TABLE tmp_$attribute.name (
+		ref int not null,
 		$attribute.anchorReferenceName $anchor.identity not null,
 		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType not null,
 		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange not null,
@@ -100,6 +101,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
 	) ON COMMIT DROP;
 	INSERT INTO tmp_$attribute.name
 	    SELECT
+		ROW_NUMBER() OVER (),
 		i.$attribute.anchorReferenceName,
 		$(schema.METADATA)? i.$attribute.metadataColumnName,
 		$(attribute.isHistorized())? i.$attribute.changingColumnName,
@@ -199,6 +201,8 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
 		AND
 		    $(attribute.hasChecksum())? p.$attribute.checksumColumnName = v.$attribute.checksumColumnName : p.$attribute.valueColumnName = v.$attribute.valueColumnName
 		WHERE
+			tmp_$attribute.name$.ref = v.ref
+		AND
 		    v.$attribute.versionColumnName = \"currentVersion\";
 
 		INSERT INTO \"$attribute.capsule\".\"$attribute.positName\" (
