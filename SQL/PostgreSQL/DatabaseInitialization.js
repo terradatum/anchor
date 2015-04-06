@@ -25,4 +25,27 @@ CREATE SCHEMA IF NOT EXISTS $schema.metadata.encapsulation;
 -- END
 -- $$BODY$$;
 
+-- Insert trigger Instead of Row --------------------------------------------------------------------------------------
+-- tri_instead instead of INSERT trigger on first argument
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.tri_instead()
+    RETURNS trigger AS 
+    $$BODY$$
+    DECLARE
+        prefix varchar;
+        rec record;
+    BEGIN
+    FOR i IN 1..TG_NARGS-1 LOOP
+        prefix := TG_ARGV[i];
+        rec := NEW;
+        IF (prefix = 'old') THEN
+            rec := OLD;
+        END IF;
+        EXECUTE format('INSERT INTO %s_%s SELECT ($$1).*;', prefix, TG_ARGV[0]) USING rec;
+    END LOOP;
+    RETURN null;
+    END;
+    $$BODY$$
+LANGUAGE plpgsql;
+
 ~*/

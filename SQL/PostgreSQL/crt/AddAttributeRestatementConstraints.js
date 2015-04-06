@@ -129,7 +129,7 @@ if(restatements) {
                 if(!attribute.isRestatable()) {
 /*~
     ALTER TABLE \"$attribute.capsule$\".\"$attribute.annexName\"
-    DROP CONSTRAINT IF EXISTS \"rc$attribute.annexName \"
+    DROP CONSTRAINT IF EXISTS \"rc$attribute.annexName\";
 
     ALTER TABLE \"$attribute.capsule$\".\"$attribute.annexName\"
     ADD CONSTRAINT \"rc$attribute.annexName\" CHECK (

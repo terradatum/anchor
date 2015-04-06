@@ -25,11 +25,15 @@ while (anchor = schema.nextAnchor()) {
 -- Insert trigger Before Statement ------------------------------------------------------------------------------------
 -- if_$attribute.name$_pre instead of INSERT trigger on $attribute.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_pre\"()
+CREATE OR REPLACE FUNCTION $attribute.capsule$.\"tri_$attribute.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
-	BEGIN
-	CREATE TEMP TABLE inserted_$attribute.name (
+	DECLARE
+        prefix varchar;
+    BEGIN
+    FOR i IN 0..TG_NARGS-1 LOOP
+    prefix := TG_ARGV[i];
+	EXECUTE format('CREATE TEMP TABLE %s_$attribute.name (
 		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
 		$attribute.identityColumnName $attribute.identity null,
 		$attribute.anchorReferenceName $anchor.identity null,
@@ -43,21 +47,9 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_pre\"()
 		primary key(
 		    $attribute.anchorReferenceName
 		)
-	) ON COMMIT DROP;
+	) ON COMMIT DROP;', prefix);
+	END LOOP;
 	RETURN null;
-    END;
-	$$BODY$$
-	LANGUAGE plpgsql;
-
--- Insert trigger Instead of Row --------------------------------------------------------------------------------------
--- if_$attribute.name_post instead of INSERT trigger on $attribute.name
------------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
-	RETURNS trigger AS 
-	$$BODY$$
-	BEGIN
-    INSERT INTO inserted_$attribute.name SELECT NEW.*;
-    RETURN null;
     END;
 	$$BODY$$
 	LANGUAGE plpgsql;
@@ -65,7 +57,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 -- Insert trigger After Statement -------------------------------------------------------------------------------------
 -- if_$attribute.name$_post instead of INSERT trigger on $attribute.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
+CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	DECLARE \"maxVersion\" int;
@@ -116,7 +108,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
 		),
 		'X'
 	    FROM
-		inserted_$attribute.name i;
+		new_$attribute.name i;
 
 		\"currentVersion\" = 0;
 
@@ -241,7 +233,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_post\"()
 		    $attribute.statementTypeColumnName in ('S',$statementTypes);
 		END LOOP;
 
-	DROP TABLE inserted_$attribute.name;
+	DROP TABLE new_$attribute.name;
 	DROP TABLE tmp_$attribute.name;
     RETURN null;
 	END;
@@ -256,13 +248,13 @@ DROP TRIGGER IF EXISTS \"it_$attribute.name\" ON $attribute.capsule$.\"$attribut
 DROP TRIGGER IF EXISTS \"it_$attribute.name$_post\" ON $attribute.capsule$.\"$attribute.name\";
 CREATE TRIGGER \"it_$attribute.name$_pre\" BEFORE INSERT ON $attribute.capsule$.\"$attribute.name\"
     FOR EACH STATEMENT
-    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name$_pre\"();
+    EXECUTE PROCEDURE $attribute.capsule$.\"tri_$attribute.name\"('new');
 CREATE TRIGGER \"it_$attribute.name\" INSTEAD OF INSERT ON $attribute.capsule$.\"$attribute.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name\"();
+    EXECUTE PROCEDURE $attribute.capsule$.tri_instead('$attribute.name', 'new');
 CREATE TRIGGER \"it_$attribute.name$_post\" AFTER INSERT ON $attribute.capsule$.\"$attribute.name\"
     FOR EACH STATEMENT
-    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name$_post\"();
+    EXECUTE PROCEDURE $attribute.capsule$.\"if_$attribute.name$\"();
 ~*/
     } // end of loop over attributes
 }

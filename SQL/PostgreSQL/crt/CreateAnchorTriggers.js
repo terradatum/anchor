@@ -17,13 +17,17 @@ while (anchor = schema.nextAnchor()) {
     if(anchor.hasMoreAttributes()) {
 /*~
 -- Insert trigger Before Statement ------------------------------------------------------------------------------------
--- if_l$anchor.name$_pre instead of INSERT trigger on l$anchor.name
+-- tri_l$anchor.name$_pre instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_pre\"()
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"tri_l$anchor.name\"()
   RETURNS trigger AS
   $$BODY$$
-  BEGIN
-      CREATE TEMP TABLE inserted_l$anchor.name (
+    DECLARE
+        prefix varchar;
+    BEGIN
+    FOR i IN 0..TG_NARGS-1 LOOP
+    prefix := TG_ARGV[i];
+    EXECUTE format('CREATE TEMP TABLE %s_l$anchor.name (
         $schema.metadata.positorSuffix $schema.metadata.positorRange null,
         $schema.metadata.reliableSuffix $schema.reliableColumnType null,
         $anchor.identityColumnName $anchor.identity,
@@ -56,20 +60,8 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_pre\"()
 ~*/
         }
 /*~
-    ) ON COMMIT DROP;
-    RETURN null;
-  END;
-  $$BODY$$
-  Language plpgsql;
--- Insert trigger Instead of Row --------------------------------------------------------------------------------------
--- if_l$anchor.name instead of INSERT trigger on l$anchor.name
------------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
-    RETURNS trigger AS 
-    $$BODY$$
-    BEGIN
-    INSERT INTO inserted_l$anchor.name SELECT NEW.*
-    ;
+    ) ON COMMIT DROP;', prefix);
+    END LOOP;
     RETURN null;
     END;
     $$BODY$$
@@ -78,7 +70,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
 -- Insert trigger After Statement ------------------------------------------------------------------------------------
 -- if_l$anchor.name$_post instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_post\"()
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
     RETURNS trigger AS 
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
@@ -96,7 +88,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_post\"()
         SELECT
             $(schema.METADATA)? $anchor.metadataColumnName : null
         FROM
-            inserted_l$anchor.name i
+            new_l$anchor.name i
         WHERE
             i.$anchor.identityColumnName is null
         RETURNING 
@@ -200,7 +192,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_post\"()
 /*~
             ROW_NUMBER() OVER (PARTITION BY $anchor.identityColumnName ORDER BY $anchor.identityColumnName) AS Row
         FROM
-          inserted_l$anchor.name
+          new_l$anchor.name
     ) i
     LEFT JOIN
         \"$anchor.mnemonic\" a
@@ -248,7 +240,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_post\"()
             }
         }
 /*~
-    DROP TABLE inserted_l$anchor.name;
+    DROP TABLE new_l$anchor.name;
     DROP TABLE \"$anchor.mnemonic\";
     DROP TABLE inserted;
 
@@ -265,13 +257,13 @@ DROP TRIGGER IF EXISTS \"it_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\
 DROP TRIGGER IF EXISTS \"it_l$anchor.name$_post\" ON $anchor.capsule$.\"l$anchor.name\";
 CREATE TRIGGER \"it_l$anchor.name$_pre\" BEFORE INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
-    EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$_pre\"();
+    EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new');
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name\"();
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new');
 CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
-    EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$_post\"();
+    EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$\"();
 ~*/
     } // end of if attributes exist
     if(anchor.hasMoreAttributes()) {
