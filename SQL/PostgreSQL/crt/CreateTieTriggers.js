@@ -79,6 +79,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name$_post\"()
 	    now := $schema.metadata.now;
 
 	    CREATE TEMP TABLE inserted2  (
+		ref int not null,
 		$(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType not null,
 		$(tie.isHistorized())? $tie.changingColumnName $tie.timeRange not null,
 		$tie.versionColumnName bigint not null,
@@ -124,6 +125,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name$_post\"()
 	    ) ON COMMIT DROP;
 	    INSERT INTO inserted2
 	    SELECT
+		ROW_NUMBER() OVER (),
 		$(schema.METADATA)? COALESCE(i.$tie.metadataColumnName, 0),
 		$(tie.isHistorized())? COALESCE(i.$tie.changingColumnName, now),
 		DENSE_RANK() OVER (
@@ -186,6 +188,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name$_post\"()
 	/*~;~*/
 	    var changingParameter = tie.isHistorized() ? 'v_changingtimepoint := v.' + tie.changingColumnName + ', ' : '';
 		var statementTypes = "'N'";
+		console.log(tie.isIdempotent());
 		if(tie.isAssertive())
 		    statementTypes += ",'D'";
 		if(tie.isHistorized() && !tie.isIdempotent())
@@ -360,6 +363,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_$tie.name$_post\"()
 		$(tie.isHistorized())? AND
 		    $(tie.isHistorized())? p.$tie.changingColumnName = v.$tie.changingColumnName
 		WHERE
+			inserted2.ref = v.ref
+		AND
 		    v.$tie.versionColumnName = \"currentVersion\";
 
 		INSERT INTO \"$tie.capsule\".\"$tie.positName\" (
