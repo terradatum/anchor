@@ -30,15 +30,16 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name$_pre\"()
 	$$BODY$$
 	BEGIN
 	CREATE TEMP TABLE inserted_$attribute.name (
-		$attribute.anchorReferenceName $anchor.identity null,
 		$(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
+		$attribute.identityColumnName $attribute.identity null,
+		$attribute.anchorReferenceName $anchor.identity null,
+		$(attribute.hasChecksum())? $attribute.checksumColumnName varbinary(16) null,
+		$(attribute.knotRange)? $attribute.valueColumnName $attribute.knot.identity null, : $attribute.valueColumnName $attribute.dataRange null,
 		$(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange null,
-		$attribute.positorColumnName $schema.metadata.positorRange null,
 		$attribute.positingColumnName $schema.metadata.positingRange null,
+		$attribute.positorColumnName $schema.metadata.positorRange null,
 		$attribute.reliabilityColumnName $schema.metadata.reliabilityRange null,
 		$attribute.reliableColumnName smallint null,
-		$(attribute.knotRange)? $attribute.valueColumnName $attribute.knot.identity null, : $attribute.valueColumnName $attribute.dataRange not null,
-		$(attribute.hasChecksum())? $attribute.checksumColumnName varbinary(16) null,
 		primary key(
 		    $attribute.anchorReferenceName
 		)
@@ -55,17 +56,7 @@ CREATE OR REPLACE FUNCTION $attribute.capsule$.\"if_$attribute.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	BEGIN
-    INSERT INTO inserted_$attribute.name SELECT
-		NEW.$attribute.anchorReferenceName
-		$(schema.METADATA)? ,NEW.$attribute.metadataColumnName
-		$(attribute.isHistorized())? ,NEW.$attribute.changingColumnName
-		,NEW.$attribute.positorColumnName
-		,NEW.$attribute.positingColumnName
-		,NEW.$attribute.reliabilityColumnName
-		,NEW.$attribute.reliableColumnName
-		$(attribute.knotRange)? ,NEW.$attribute.valueColumnName : ,NEW.$attribute.valueColumnName
-		$(attribute.hasChecksum())? ,NEW.$attribute.checksumColumnName
-    ;
+    INSERT INTO inserted_$attribute.name SELECT NEW.*;
     RETURN null;
     END;
 	$$BODY$$

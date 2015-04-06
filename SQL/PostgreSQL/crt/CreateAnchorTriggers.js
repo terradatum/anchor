@@ -26,33 +26,34 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$_pre\"()
       CREATE TEMP TABLE inserted_l$anchor.name (
         $schema.metadata.positorSuffix $schema.metadata.positorRange null,
         $schema.metadata.reliableSuffix $schema.reliableColumnType null,
-        $anchor.identityColumnName $anchor.identity null,
-        $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType null,
+        $anchor.identityColumnName $anchor.identity,
+        $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType,
 ~*/
+        var knot, attribute;
         while (attribute = anchor.nextAttribute()) {
 /*~
-        $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity null,
-        $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
-        $(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange null,
-        $attribute.positorColumnName $schema.metadata.positorRange null,
-        $attribute.positingColumnName $schema.metadata.positingRange null,
-        $attribute.reliabilityColumnName $schema.metadata.reliabilityRange null,
-        $attribute.reliableColumnName $schema.reliableColumnType null,
+        $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity,
+        $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType,
+        $attribute.identityColumnName $attribute.identity,
+        $(attribute.timeRange)? $attribute.changingColumnName $attribute.timeRange,
+        $attribute.positingColumnName $schema.metadata.positingRange,
+        $attribute.positorColumnName $schema.metadata.positorRange,
+        $attribute.reliabilityColumnName $schema.metadata.reliabilityRange,
+        $attribute.reliableColumnName smallint,
 ~*/
             if(attribute.isKnotted()) {
                 knot = attribute.knot;
 /*~
-        $attribute.knotValueColumnName $knot.dataRange null,
-        $(knot.hasChecksum())? $attribute.knotChecksumColumnName varbinary(16) null,
-        $(schema.METADATA)? $attribute.knotMetadataColumnName $schema.metadata.metadataType null,
-        $attribute.valueColumnName $knot.identity null$(anchor.hasMoreAttributes())?,
+        $(knot.hasChecksum())? $attribute.knotChecksumColumnName, --TODO
+        $attribute.knotValueColumnName $knot.dataRange,
+        $(schema.METADATA)? $attribute.knotMetadataColumnName $schema.metadata.metadataType,
 ~*/
             }
-            else {
 /*~
-        $attribute.valueColumnName $attribute.dataRange null$(anchor.hasMoreAttributes())?,
+        $(attribute.hasChecksum())? $attribute.checksumColumnName,  --TODO
+        $attribute.valueColumnName $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
+        $(anchor.hasMoreAttributes())?,
 ~*/
-            }
         }
 /*~
     ) ON COMMIT DROP;
@@ -67,38 +68,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name\"()
     RETURNS trigger AS 
     $$BODY$$
     BEGIN
-    INSERT INTO inserted_l$anchor.name SELECT
-        NEW.$schema.metadata.positorSuffix,
-        NEW.$schema.metadata.reliableSuffix,
-        NEW.$anchor.identityColumnName,
-        $(schema.METADATA)? NEW.$anchor.metadataColumnName,
-~*/
-        while (attribute = anchor.nextAttribute()) {
-/*~
-        $(schema.IMPROVED)? NEW.$attribute.anchorReferenceName,
-        $(schema.METADATA)? NEW.$attribute.metadataColumnName,
-        $(attribute.isHistorized())? NEW.$attribute.changingColumnName,
-        NEW.$attribute.positorColumnName,
-        NEW.$attribute.positingColumnName,
-        NEW.$attribute.reliabilityColumnName,
-        NEW.$attribute.reliableColumnName,
-~*/
-            if(attribute.isKnotted()) {
-                knot = attribute.knot;
-/*~
-        NEW.$attribute.knotValueColumnName,
-        $(knot.hasChecksum())? NEW.$attribute.knotChecksumColumnName,
-        $(schema.METADATA)? NEW.$attribute.knotMetadataColumnName,
-        NEW.$attribute.valueColumnName$(anchor.hasMoreAttributes())?,
-~*/
-            }
-            else {
-/*~
-        NEW.$attribute.valueColumnName$(anchor.hasMoreAttributes())?,
-~*/
-            }
-        }
-/*~
+    INSERT INTO inserted_l$anchor.name SELECT NEW.*
     ;
     RETURN null;
     END;
