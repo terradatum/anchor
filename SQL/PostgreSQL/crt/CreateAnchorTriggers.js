@@ -277,8 +277,6 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
     now := $schema.metadata.now;
-    CREATE TEMP TABLE inserted ON COMMIT DROP
-        AS SELECT NEW.*;
 
    IF(OLD.$anchor.identityColumnName != NEW.$anchor.identityColumnName)
         THEN RAISE EXCEPTION 'The identity column $anchor.identityColumnName is not updatable.';
@@ -339,7 +337,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
                 ELSE COALESCE(i.$attribute.reliabilityColumnName, $schema.metadata.reliableCutoff)
             END
         FROM
-            inserted i
+            new_l$anchor.name i
         LEFT JOIN
             $knot.capsule$.\"$knot.name\" \"k$knot.mnemonic\"
         ON
@@ -393,13 +391,15 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
                 ELSE COALESCE(i.$attribute.reliabilityColumnName, $schema.metadata.reliableCutoff)
             END
         FROM
-            inserted i;
+            new_l$anchor.name i;
     END;
     END IF;
 ~*/
             } // end of not knotted
         } // end of while loop over attributes
 /*~
+    drop table new_l$anchor.name;
+    drop table old_l$anchor.name;
     RETURN null;
     END;
     $$BODY$$
@@ -408,7 +408,16 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
 -- UPDATE trigger -----------------------------------------------------------------------------------------------------
 -- ut_l$anchor.name instead of UPDATE trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"ut_l$anchor.name$_pre\" ON $anchor.capsule$.\"l$anchor.name\";
 DROP TRIGGER IF EXISTS \"ut_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\";
+DROP TRIGGER IF EXISTS \"ut_l$anchor.name$_post\" ON $anchor.capsule$.\"l$anchor.name\";
+
+CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new','old');
+CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH ROW
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new', 'old');
 CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
