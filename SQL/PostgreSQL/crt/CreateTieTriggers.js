@@ -447,13 +447,17 @@ CREATE TRIGGER \"it_$tie.name$_post\" AFTER INSERT ON $tie.capsule$.\"$tie.name\
 /*~
 
 -- Insert trigger -----------------------------------------------------------------------------------------------------
--- it_l$tie.name$_pre instead of INSERT trigger on l$tie.name
+-- tri_l$tie.name instead of INSERT trigger on l$tie.name
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name$_pre\"()
+CREATE OR REPLACE FUNCTION $tie.capsule$.\"tri_l$tie.name\"()
 	RETURNS trigger AS 
 	$$BODY$$
-	BEGIN
-	CREATE TEMP TABLE inserted_l$tie.name (
+	DECLARE
+        prefix varchar;
+    BEGIN
+    FOR i IN 0..TG_NARGS-1 LOOP
+    prefix := TG_ARGV[i];
+    EXECUTE format('CREATE TEMP TABLE %s_l$tie.name (
 		$schema.metadata.positorSuffix $schema.metadata.positorRange null,
 		$tie.identityColumnName $tie.identity,
 		$(schema.METADATA)? $tie.metadataColumnName $schema.metadata.metadataType,
@@ -477,29 +481,17 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name$_pre\"()
 ~*/
         }
 /*~
-		) ON COMMIT DROP;
-	RETURN null;
-	END;
-	$$BODY$$
-	LANGUAGE plpgsql;
+		) ON COMMIT DROP;', prefix);
+    END LOOP;
+    RETURN null;
+    END;
+    $$BODY$$
+    LANGUAGE plpgsql;
 
 -- Insert trigger -----------------------------------------------------------------------------------------------------
 -- it_l$tie.name instead of INSERT trigger on l$tie.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name\"()
-	RETURNS trigger AS 
-	$$BODY$$
-	BEGIN
-		INSERT INTO inserted_l$tie.name SELECT NEW.*;
-	RETURN null;
-	END;
-	$$BODY$$
-	LANGUAGE plpgsql;
-
--- Insert trigger -----------------------------------------------------------------------------------------------------
--- it_l$tie.name$_post instead of INSERT trigger on l$tie.name
------------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name$_post\"()
 	RETURNS trigger AS 
 	$$BODY$$
 	DECLARE \"now\" $schema.metadata.chronon;
@@ -533,7 +525,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name$_post\"()
 		i.$tie.positingColumnName,
 		i.$tie.reliabilityColumnName
 	    FROM
-		inserted_l$tie.name i~*/
+		new_l$tie.name i~*/
 		while (role = tie.nextKnotRole()) {
 		    knot = role.knot;
 	/*~
@@ -543,7 +535,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"if_l$tie.name$_post\"()
 		\"$role.name\".$knot.valueColumnName = i.$role.knotValueColumnName~*/
 		}
 	/*~;
-	DROP TABLE inserted_l$tie.name;
+	DROP TABLE new_l$tie.name;
 	RETURN null;
 	END;
 	$$BODY$$
@@ -558,13 +550,13 @@ DROP TRIGGER IF EXISTS \"it_l$tie.name$_post\" ON $tie.capsule$.\"l$tie.name\";
 
 CREATE TRIGGER \"it_l$tie.name$_pre\" BEFORE INSERT ON $tie.capsule$.\"l$tie.name\"
     FOR EACH STATEMENT
-    EXECUTE PROCEDURE $tie.capsule$.\"if_l$tie.name$_pre\"();
+    EXECUTE PROCEDURE $tie.capsule$.\"tri_l$tie.name\"('new');
 CREATE TRIGGER \"it_l$tie.name\" INSTEAD OF INSERT ON $tie.capsule$.\"l$tie.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $tie.capsule$.\"if_l$tie.name\"();
+    EXECUTE PROCEDURE $tie.capsule$.tri_instead('l$tie.name', 'new');
 CREATE TRIGGER \"it_l$tie.name$_post\" AFTER INSERT ON $tie.capsule$.\"l$tie.name\"
     FOR EACH STATEMENT
-    EXECUTE PROCEDURE $tie.capsule$.\"if_l$tie.name$_post\"();
+    EXECUTE PROCEDURE $tie.capsule$.\"if_l$tie.name\"();
 ~*/
     if(tie.hasMoreValues()) {
 /*~
