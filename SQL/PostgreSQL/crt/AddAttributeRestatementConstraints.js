@@ -57,10 +57,13 @@ if(restatements) {
     DECLARE value $valueType;
     DECLARE changed $attribute.timeRange;
     BEGIN
-    SELECT
-        id = $attribute.anchorReferenceName,
-        value = $valueColumn,
-        changed = $attribute.changingColumnName
+    SELECT INTO
+        id,
+        value,
+        changed
+        $attribute.anchorReferenceName,
+        $valueColumn,
+        $attribute.changingColumnName
     FROM
         \"$attribute.capsule$\".\"$attribute.positName\""
     WHERE
@@ -129,7 +132,7 @@ if(restatements) {
                 if(!attribute.isRestatable()) {
 /*~
     ALTER TABLE \"$attribute.capsule$\".\"$attribute.annexName\"
-    DROP CONSTRAINT IF EXISTS \"rc$attribute.annexName\"
+    DROP CONSTRAINT IF EXISTS \"rc$attribute.annexName\";
 
     ALTER TABLE \"$attribute.capsule$\".\"$attribute.annexName\"
     ADD CONSTRAINT \"rc$attribute.annexName\" CHECK (
