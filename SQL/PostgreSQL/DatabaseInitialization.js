@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.tri_instead()
     $$BODY$$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION HAS_UPDATE (
+CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.has_update (
   new_old_suffix varchar,
   column_name varchar
 ) RETURNS BOOLEAN AS
@@ -60,8 +60,8 @@ BEGIN
 EXECUTE
 format('
 SELECT exists(select * from
- (select row_number() over () r, %1$$I as col from new_%2$$s) n,
- (select row_number() over () r, %1$$I as col from old_%2$$s) o
+ (select row_number() over () r, %1$$s as col from new_%2$$s) n,
+ (select row_number() over () r, %1$$s as col from old_%2$$s) o
 where n.r = o.r
 and n.col != o.col
 )', column_name, new_old_suffix)

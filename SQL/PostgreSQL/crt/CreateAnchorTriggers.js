@@ -278,23 +278,23 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
     BEGIN
     now := $schema.metadata.now;
 
-   IF(OLD.$anchor.identityColumnName != NEW.$anchor.identityColumnName)
+    IF(aergo.HAS_UPDATE('l$anchor.name', '$anchor.identityColumnName'))
         THEN RAISE EXCEPTION 'The identity column $anchor.identityColumnName is not updatable.';
     END IF;
 ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
-    IF(OLD.$attribute.identityColumnName != NEW.$attribute.identityColumnName)
+    IF(aergo.HAS_UPDATE('l$anchor.name', '$attribute.identityColumnName'))
         THEN RAISE EXCEPTION 'The identity column $attribute.identityColumnName is not updatable.';
     END IF;
-    IF(OLD.$attribute.anchorReferenceName != NEW.$attribute.anchorReferenceName)
+    IF(aergo.HAS_UPDATE('l$anchor.name', '$attribute.anchorReferenceName'))
         THEN RAISE EXCEPTION 'The foreign key column $attribute.anchorReferenceName is not updatable.';
     END IF;
 ~*/
             if(attribute.isKnotted()) {
                 knot = attribute.knot;
 /*~
-    IF(OLD.$attribute.valueColumnName != NEW.$attribute.valueColumnName OR OLD.$attribute.knotValueColumnName != NEW.$attribute.knotValueColumnName)
+    IF(aergo.HAS_UPDATE('l$anchor.name', '$attribute.valueColumnName') OR aergo.HAS_UPDATE('l$anchor.name', '$attribute.knotValueColumnName'))
     THEN BEGIN
         INSERT INTO $attribute.capsule$.\"$attribute.name\" (
             $(schema.METADATA)? $attribute.metadataColumnName,
@@ -308,28 +308,28 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
         SELECT
             $(schema.METADATA)? COALESCE(i.$attribute.metadataColumnName, i.$anchor.metadataColumnName),
             COALESCE(i.$attribute.anchorReferenceName, i.$anchor.identityColumnName),
-            CASE WHEN (OLD.$attribute.valueColumnName != NEW.$attribute.valueColumnName) THEN i.$attribute.valueColumnName ELSE k$knot.mnemonic$.$knot.identityColumnName END,
+            CASE WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.valueColumnName')) THEN i.$attribute.valueColumnName ELSE k$knot.mnemonic$.$knot.identityColumnName END,
 ~*/
                 if(attribute.isHistorized()) {
 /*~
             cast(CASE
                 WHEN i.$attribute.valueColumnName is null AND k$knot.mnemonic$.$knot.identityColumnName is null THEN i.$attribute.changingColumnName
-                WHEN (OLD.$attribute.changingColumnName != NEW.$attribute.changingColumnName) THEN i.$attribute.changingColumnName
+                WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.changingColumnName')) THEN i.$attribute.changingColumnName
                 ELSE now
             END as $attribute.timeRange),
 ~*/
                 }
 /*~
-            cast(CASE WHEN (OLD.$attribute.positingColumnName != NEW.$attribute.positingColumnName) THEN i.$attribute.positingColumnName ELSE now END as $schema.metadata.positingRange),
-            CASE WHEN (OLD.$schema.metadata.positorSuffix != NEW.$schema.metadata.positorSuffix) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
+            cast(CASE WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.positingColumnName')) THEN i.$attribute.positingColumnName ELSE now END as $schema.metadata.positingRange),
+            CASE WHEN (aergo.HAS_UPDATE('l$anchor.name', '$schema.metadata.positorSuffix')) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
             CASE
                 WHEN i.$attribute.valueColumnName is null AND k$knot.mnemonic$.$knot.identityColumnName is null THEN $schema.metadata.deleteReliability
-                WHEN (OLD.$schema.metadata.reliableSuffix != NEW.$schema.metadata.reliableSuffix) THEN
+                WHEN (aergo.HAS_UPDATE('l$anchor.name', '$schema.metadata.reliableSuffix')) THEN
                     CASE i.$schema.metadata.reliableSuffix
                         WHEN 0 THEN $schema.metadata.deleteReliability
                         ELSE $schema.metadata.reliableCutoff
                     END
-                WHEN (OLD.$attribute.reliableColumnName != NEW.$attribute.reliableColumnName) THEN
+                WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.reliableColumnName')) THEN
                     CASE i.$attribute.reliableColumnName
                         WHEN 0 THEN $schema.metadata.deleteReliability
                         ELSE $schema.metadata.reliableCutoff
@@ -348,7 +348,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
             }
             else { // not knotted
 /*~
-    IF(OLD.$attribute.valueColumnName != NEW.$attribute.valueColumnName)
+    IF(aergo.HAS_UPDATE('l$anchor.name', '$attribute.valueColumnName'))
     THEN BEGIN
         INSERT INTO $attribute.capsule$.\"$attribute.name\" (
             $(schema.METADATA)? $attribute.metadataColumnName,
@@ -368,22 +368,22 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
 /*~
             cast(CASE
                 WHEN i.$attribute.valueColumnName is null THEN i.$attribute.changingColumnName
-                WHEN (OLD.$attribute.changingColumnName != NEW.$attribute.changingColumnName) THEN i.$attribute.changingColumnName
+                WHEN ('l$anchor.name', 'aergo.HAS_UPDATE$attribute.changingColumnName')) THEN i.$attribute.changingColumnName
                 ELSE now
             END as $attribute.timeRange),
 ~*/
                 }
 /*~
-            cast(CASE WHEN (OLD.$attribute.positingColumnName != NEW.$attribute.positingColumnName) THEN i.$attribute.positingColumnName ELSE now END as $schema.metadata.positingRange),
-            CASE WHEN (OLD.$schema.metadata.positorSuffix != NEW.$schema.metadata.positorSuffix) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
+            cast(CASE WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.positingColumnName')) THEN i.$attribute.positingColumnName ELSE now END as $schema.metadata.positingRange),
+            CASE WHEN (aergo.HAS_UPDATE('l$anchor.name', '$schema.metadata.positorSuffix')) THEN i.$schema.metadata.positorSuffix ELSE COALESCE(i.$attribute.positorColumnName, 0) END,
             CASE
                 WHEN i.$attribute.valueColumnName is null THEN $schema.metadata.deleteReliability
-                WHEN (OLD.$schema.metadata.reliableSuffix != NEW.$schema.metadata.reliableSuffix) THEN
+                WHEN (aergo.HAS_UPDATE('l$anchor.name', '$schema.metadata.reliableSuffix')) THEN
                     CASE i.$schema.metadata.reliableSuffix
                         WHEN 0 THEN $schema.metadata.deleteReliability
                         ELSE $schema.metadata.reliableCutoff
                     END
-                WHEN (OLD.$attribute.reliableColumnName != NEW.$attribute.reliableColumnName) THEN
+                WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.reliableColumnName')) THEN
                     CASE i.$attribute.reliableColumnName
                         WHEN 0 THEN $schema.metadata.deleteReliability
                         ELSE $schema.metadata.reliableCutoff
@@ -412,14 +412,14 @@ DROP TRIGGER IF EXISTS \"ut_l$anchor.name$_pre\" ON $anchor.capsule$.\"l$anchor.
 DROP TRIGGER IF EXISTS \"ut_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\";
 DROP TRIGGER IF EXISTS \"ut_l$anchor.name$_post\" ON $anchor.capsule$.\"l$anchor.name\";
 
-CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
-    FOR EACH ROW
+CREATE TRIGGER \"ut_l$anchor.name$_pre\" BEFORE UPDATE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new','old');
 CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
     EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new', 'old');
-CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
-    FOR EACH ROW
+CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
 ~*/
     } // end of if attributes exist
