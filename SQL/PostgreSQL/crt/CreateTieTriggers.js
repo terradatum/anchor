@@ -573,12 +573,11 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	DECLARE \"now\" $schema.metadata.chronon;
 	BEGIN
 	    now := $schema.metadata.now;
-	    CREATE TEMP TABLE inserted ON COMMIT DROP AS SELECT NEW.*;
 	~*/
 		if(tie.hasMoreIdentifiers()) {
 		    while(role = tie.nextIdentifier()) {
 	/*~
-	    IF(NEW.$role.columnName <> OLD.$role.columnName)
+	    IF(aergo.HAS_UPDATE('l$tie.name', '$role.columnName'))
 			THEN RAISE EXCEPTION 'The identity column $role.columnName is not updatable.';
 		END IF;
 	~*/
@@ -601,7 +600,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	    )
 	    SELECT
 		$(schema.METADATA)? i.$tie.metadataColumnName,
-		$(tie.isHistorized())? cast(CASE WHEN (NEW.$tie.changingColumnName <> OLD.$tie.changingColumnName) THEN i.$tie.changingColumnName ELSE now END as $tie.timeRange),
+		$(tie.isHistorized())? cast(CASE WHEN (aergo.HAS_UPDATE('l$tie.name', '$tie.changingColumnName')) THEN i.$tie.changingColumnName ELSE now END as $tie.timeRange),
 	~*/
 		while (role = tie.nextRole()) {
 	/*~
@@ -609,8 +608,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 	~*/
 		}
 	/*~
-		CASE WHEN (NEW.$tie.positorColumnName <> OLD.$tie.positorColumnName) THEN i.$tie.positorColumnName ELSE 0 END,
-		cast(CASE WHEN (NEW.$tie.positingColumnName <> OLD.$tie.positingColumnName) THEN i.$tie.positingColumnName ELSE now END as $schema.metadata.positingRange),
+		CASE WHEN (aergo.HAS_UPDATE('l$tie.name', '$tie.positorColumnName')) THEN i.$tie.positorColumnName ELSE 0 END,
+		cast(CASE WHEN (aergo.HAS_UPDATE('l$tie.name', '$tie.positingColumnName')) THEN i.$tie.positingColumnName ELSE now END as $schema.metadata.positingRange),
 		CASE 
 		    WHEN
 	~*/
@@ -622,8 +621,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 		}
 	/*~
 		    THEN $schema.metadata.deleteReliability
-		    WHEN (NEW.$tie.reliabilityColumnName <> OLD.$tie.reliabilityColumnName) THEN i.$tie.reliabilityColumnName 
-		    WHEN (NEW.$tie.reliableColumnName <> OLD.$tie.reliableColumnName) THEN 
+		    WHEN (aergo.HAS_UPDATE('l$tie.name', '$tie.reliabilityColumnName')) THEN i.$tie.reliabilityColumnName 
+		    WHEN (aergo.HAS_UPDATE('l$tie.name', '$tie.reliableColumnName')) THEN 
 			CASE i.$tie.reliableColumnName
 			    WHEN 0 THEN $schema.metadata.deleteReliability
 			    ELSE $schema.metadata.reliableCutoff
@@ -631,7 +630,7 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 		    ELSE COALESCE(i.$tie.reliabilityColumnName, $schema.metadata.reliableCutoff)
 		END
 	    FROM
-		inserted i~*/
+		new_l$tie.name i~*/
 		while (role = tie.nextKnotRole()) {
 		    knot = role.knot;
 	/*~
@@ -641,6 +640,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 		\"$role.name\".$knot.valueColumnName = i.$role.knotValueColumnName~*/
 		}
 	/*~;
+	DROP TABLE new_l$tie.name;
+	DROP TABLE old_l$tie.name;
 	RETURN null;
 	END;
 	$$BODY$$
@@ -649,9 +650,17 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"uf_l$tie.name\"()
 -- UPDATE trigger -----------------------------------------------------------------------------------------------------
 -- ut_l$tie.name instead of UPDATE trigger on l$tie.name
 -----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"ut_l$tie.name$_pre\" ON $tie.capsule$.\"l$tie.name\";
 DROP TRIGGER IF EXISTS \"ut_l$tie.name\" ON $tie.capsule$.\"l$tie.name\";
+DROP TRIGGER IF EXISTS \"ut_l$tie.name$_post\" ON $tie.capsule$.\"l$tie.name\";
+CREATE TRIGGER \"ut_l$tie.name$_pre\" BEFORE UPDATE ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $tie.capsule$.\"tri_l$tie.name\"('new', 'old');
 CREATE TRIGGER \"ut_l$tie.name\" INSTEAD OF UPDATE ON $tie.capsule$.\"l$tie.name\"
     FOR EACH ROW
+    EXECUTE PROCEDURE $tie.capsule$.tri_instead('l$tie.name', 'new', 'old');
+CREATE TRIGGER \"ut_l$tie.name$_post\" AFTER UPDATE ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH STATEMENT
     EXECUTE PROCEDURE $tie.capsule$.\"uf_l$tie.name\"();
 ~*/
     }
