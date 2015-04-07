@@ -437,9 +437,6 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
 ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
-    CREATE TEMP TABLE deleted_$attribute.name ON COMMIT DROP
-        AS SELECT OLD.*;
-
     INSERT INTO $attribute.capsule$.\"$attribute.annexName\" (
         $(schema.METADATA)? $attribute.metadataColumnName,
         $attribute.identityColumnName,
@@ -454,7 +451,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
         now,
         $schema.metadata.deleteReliability
     FROM
-        deleted_$attribute.name d
+        old_l$anchor.name d
     JOIN
         $attribute.capsule$.\"$attribute.annexName\" p
     ON
@@ -462,6 +459,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
 ~*/
         }
 /*~
+    DROP TABLE old_l$anchor.name;
     RETURN null;
     END;
     $$BODY$$
@@ -470,9 +468,17 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
 -- DELETE trigger -----------------------------------------------------------------------------------------------------
 -- dt_l$anchor.name instead of DELETE trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"dt_l$anchor.name$_pre\" ON $anchor.capsule$.\"l$anchor.name\";
 DROP TRIGGER IF EXISTS \"dt_l$anchor.name\" ON $anchor.capsule$.\"l$anchor.name\";
+DROP TRIGGER IF EXISTS \"dt_l$anchor.name$_post\" ON $anchor.capsule$.\"l$anchor.name\";
+CREATE TRIGGER \"dt_l$anchor.name$_pre\" BEFORE DELETE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('old');
 CREATE TRIGGER \"dt_l$anchor.name\" INSTEAD OF DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'old');
+CREATE TRIGGER \"dt_l$anchor.name$_post\" AFTER DELETE ON $anchor.capsule$.\"l$anchor.name\"
+    FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"df_l$anchor.name\"();
 ~*/
     } // end of if attributes exist

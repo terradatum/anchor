@@ -691,7 +691,8 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"df_l$tie.name\"()
 		now,
 		$schema.metadata.deleteReliability
 	    FROM
-		deleted d;
+		old_l$tie.name d;
+    DROP TABLE old_l$tie.name;
 	RETURN null;
 	END;
 	$$BODY$$
@@ -700,9 +701,17 @@ CREATE OR REPLACE FUNCTION $tie.capsule$.\"df_l$tie.name\"()
 -- DELETE trigger -----------------------------------------------------------------------------------------------------
 -- dt_l$tie.name instead of DELETE trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS \"dt_l$tie.name$_pre\" ON $tie.capsule$.\"l$tie.name\";
 DROP TRIGGER IF EXISTS \"dt_l$tie.name\" ON $tie.capsule$.\"l$tie.name\";
+DROP TRIGGER IF EXISTS \"dt_l$tie.name$_post\" ON $tie.capsule$.\"l$tie.name\";
+CREATE TRIGGER \"dt_l$tie.name$_pre\" BEFORE DELETE ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH STATEMENT
+    EXECUTE PROCEDURE $tie.capsule$.\"tri_l$tie.name\"('old');
 CREATE TRIGGER \"dt_l$tie.name\" INSTEAD OF DELETE ON $tie.capsule$.\"l$tie.name\"
     FOR EACH ROW
+    EXECUTE PROCEDURE $tie.capsule$.tri_instead('l$tie.name', 'old');
+CREATE TRIGGER \"dt_l$tie.name$_post\" AFTER DELETE ON $tie.capsule$.\"l$tie.name\"
+    FOR EACH STATEMENT
     EXECUTE PROCEDURE $tie.capsule$.\"df_l$tie.name\"();
 ~*/
 }

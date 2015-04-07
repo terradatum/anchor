@@ -37,7 +37,9 @@ CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.tri_instead()
     BEGIN
     FOR i IN 1..TG_NARGS-1 LOOP
         prefix := TG_ARGV[i];
-        rec := NEW;
+        IF (prefix = 'new') THEN
+            rec := NEW;
+        END IF;
         IF (prefix = 'old') THEN
             rec := OLD;
         END IF;
