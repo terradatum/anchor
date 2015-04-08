@@ -368,7 +368,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
 /*~
             cast(CASE
                 WHEN i.$attribute.valueColumnName is null THEN i.$attribute.changingColumnName
-                WHEN ('l$anchor.name', 'aergo.HAS_UPDATE$attribute.changingColumnName')) THEN i.$attribute.changingColumnName
+                WHEN (aergo.HAS_UPDATE('l$anchor.name', '$attribute.changingColumnName')) THEN i.$attribute.changingColumnName
                 ELSE now
             END as $attribute.timeRange),
 ~*/
