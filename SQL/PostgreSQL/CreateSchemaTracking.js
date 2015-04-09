@@ -25,60 +25,65 @@ SELECT
 -- Schema expanded view -----------------------------------------------------------------------------------------------
 -- A view of the schema table that expands the XML attributes into columns
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE VIEW $schema.metadata.encapsulation$.\"_Schema_Expanded\"
+DROP MATERIALIZED VIEW IF EXISTS $schema.metadata.encapsulation$.\"_Schema_Expanded\";
+
+CREATE MATERIALIZED VIEW $schema.metadata.encapsulation$.\"_Schema_Expanded\"
 AS
 SELECT
 	version,
 	activation,
 	schema,
-	json_extract_path_text(schema, 'schema', 'format') as format,
-	json_extract_path_text(schema, 'schema', 'date')::date as date,
-	json_extract_path_text(schema, 'schema', 'time')::time as time,
-	json_extract_path_text(schema, 'schema', 'metadata', 'temporalization') as temporalization,
-	json_extract_path_text(schema, 'schema', 'metadata', 'databaseTarget') as database_target,
-	json_extract_path_text(schema, 'schema', 'metadata', 'changingRange') as changing_range,
-	json_extract_path_text(schema, 'schema', 'metadata', 'encapsulation') as encapsulation,
-	json_extract_path_text(schema, 'schema', 'metadata', 'identity') as identity,
-	json_extract_path_text(schema, 'schema', 'metadata', 'metadataPrefix') as metadata_prefix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'metadataType') as metadata_type,
-	json_extract_path_text(schema, 'schema', 'metadata', 'metadataUsage')::boolean as metadata_usage,
-	json_extract_path_text(schema, 'schema', 'metadata', 'changingSuffix') as changing_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'identitySuffix') as identity_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positIdentity') as posit_identity,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positGenerator')::boolean as posit_generator,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positingRange') as positing_range,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positingSuffix') as positing_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positorRange') as positor_range,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positorSuffix') as positor_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'reliabilityRange') as reliability_range,
-	json_extract_path_text(schema, 'schema', 'metadata', 'reliabilitySuffix') as reliability_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'reliableCutoff') as reliable_cutoff,
-	json_extract_path_text(schema, 'schema', 'metadata', 'deleteReliability') as delete_reliability,
-	json_extract_path_text(schema, 'schema', 'metadata', 'reliableSuffix') as reliable_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'partitioning')::boolean as partitioning,
-	json_extract_path_text(schema, 'schema', 'metadata', 'entityIntegrity')::boolean as entity_integrity,
-	json_extract_path_text(schema, 'schema', 'metadata', 'restatability')::boolean as restatability,
-	json_extract_path_text(schema, 'schema', 'metadata', 'idempotency')::boolean as idempotency,
-	json_extract_path_text(schema, 'schema', 'metadata', 'assertiveness')::boolean as assertiveness,
-	json_extract_path_text(schema, 'schema', 'metadata', 'naming') as naming,
-	json_extract_path_text(schema, 'schema', 'metadata', 'positSuffix') as posit_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'annexSuffix') as annex_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'chronon') as chronon,
-	json_extract_path_text(schema, 'schema', 'metadata', 'now') as now,
-	json_extract_path_text(schema, 'schema', 'metadata', 'dummySuffix') as dummy_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'statementTypeSuffix') as statement_type_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'checksumSuffix') as checksum_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'businessViews')::boolean as business_views,
-	json_extract_path_text(schema, 'schema', 'metadata', 'equivalence')::boolean as equivalence,
-	json_extract_path_text(schema, 'schema', 'metadata', 'equivalentSuffix') as equivalent_suffix,
-	json_extract_path_text(schema, 'schema', 'metadata', 'equivalentRange') as equivalent_range
+	(schema #>> '{schema, format}') as format,
+	(schema #>> '{schema, date}')::date as date,
+	(schema #>> '{schema, time}')::time as time,
+	(schema #>> '{schema, metadata, temporalization}') as temporalization,
+	(schema #>> '{schema, metadata, databaseTarget}') as database_target,
+	(schema #>> '{schema, metadata, changingRange}') as changing_range,
+	(schema #>> '{schema, metadata, encapsulation}') as encapsulation,
+	(schema #>> '{schema, metadata, identity}') as identity,
+	(schema #>> '{schema, metadata, metadataPrefix}') as metadata_prefix,
+	(schema #>> '{schema, metadata, metadataType}') as metadata_type,
+	(schema #>> '{schema, metadata, metadataUsage}')::boolean as metadata_usage,
+	(schema #>> '{schema, metadata, changingSuffix}') as changing_suffix,
+	(schema #>> '{schema, metadata, identitySuffix}') as identity_suffix,
+	(schema #>> '{schema, metadata, positIdentity}') as posit_identity,
+	(schema #>> '{schema, metadata, positGenerator}')::boolean as posit_generator,
+	(schema #>> '{schema, metadata, positingRange}') as positing_range,
+	(schema #>> '{schema, metadata, positingSuffix}') as positing_suffix,
+	(schema #>> '{schema, metadata, positorRange}') as positor_range,
+	(schema #>> '{schema, metadata, positorSuffix}') as positor_suffix,
+	(schema #>> '{schema, metadata, reliabilityRange}') as reliability_range,
+	(schema #>> '{schema, metadata, reliabilitySuffix}') as reliability_suffix,
+	(schema #>> '{schema, metadata, reliableCutoff}') as reliable_cutoff,
+	(schema #>> '{schema, metadata, deleteReliability}') as delete_reliability,
+	(schema #>> '{schema, metadata, reliableSuffix}') as reliable_suffix,
+	(schema #>> '{schema, metadata, partitioning}')::boolean as partitioning,
+	(schema #>> '{schema, metadata, entityIntegrity}')::boolean as entity_integrity,
+	(schema #>> '{schema, metadata, restatability}')::boolean as restatability,
+	(schema #>> '{schema, metadata, idempotency}')::boolean as idempotency,
+	(schema #>> '{schema, metadata, assertiveness}')::boolean as assertiveness,
+	(schema #>> '{schema, metadata, naming}') as naming,
+	(schema #>> '{schema, metadata, positSuffix}') as posit_suffix,
+	(schema #>> '{schema, metadata, annexSuffix}') as annex_suffix,
+	(schema #>> '{schema, metadata, chronon}') as chronon,
+	(schema #>> '{schema, metadata, now}') as now,
+	(schema #>> '{schema, metadata, dummySuffix}') as dummy_suffix,
+	(schema #>> '{schema, metadata, statementTypeSuffix}') as statement_type_suffix,
+	(schema #>> '{schema, metadata, checksumSuffix}') as checksum_suffix,
+	(schema #>> '{schema, metadata, businessViews}')::boolean as business_views,
+	(schema #>> '{schema, metadata, equivalence}')::boolean as equivalence,
+	(schema #>> '{schema, metadata, equivalentSuffix}') as equivalent_suffix,
+	(schema #>> '{schema, metadata, equivalentRange}') as equivalent_range
 FROM
-	$schema.metadata.encapsulation$.\"_Schema\";
+	$schema.metadata.encapsulation$.\"_Schema\"
+ORDER by version desc;
 
 -- Anchor view --------------------------------------------------------------------------------------------------------
 -- The anchor view shows information about all the anchors in a schema
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE VIEW $schema.metadata.encapsulation$.\"_Anchor\"
+DROP MATERIALIZED VIEW IF EXISTS $schema.metadata.encapsulation$.\"_Anchor\";
+
+CREATE MATERIALIZED VIEW $schema.metadata.encapsulation$.\"_Anchor\"
 AS 
 SELECT
   s.version,
@@ -89,16 +94,19 @@ SELECT
   (anchor ->> 'descriptor')::varchar as descriptor,
   (anchor ->> 'identity')::varchar as identity,
   (anchor #>> '{metadata, generator}')::boolean as generator,
-  (select count(*)::int from json_object_keys(anchor -> 'attribute')) as numberOfAttributes
+  (select count(*)::int from json_object_keys(anchor -> 'attribute')) as number_of_attributes
 FROM
   aergo.\"_Schema\" s
 CROSS JOIN LATERAL
-  (SELECT value as anchor FROM json_each(s.schema #> '{schema, anchor}')) a;
+  (SELECT value as anchor FROM json_each(s.schema #> '{schema, anchor}')) a
+ORDER by version desc;
 
 -- Knot view ----------------------------------------------------------------------------------------------------------
 -- The knot view shows information about all the knots in a schema
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE VIEW $schema.metadata.encapsulation$.\"_Knot\"
+DROP MATERIALIZED VIEW IF EXISTS $schema.metadata.encapsulation$.\"_Knot\";
+
+CREATE MATERIALIZED VIEW $schema.metadata.encapsulation$.\"_Knot\"
 AS
 SELECT
   s.version,
@@ -115,29 +123,86 @@ SELECT
 FROM
   aergo.\"_Schema\" s
 CROSS JOIN LATERAL
-  (SELECT value as knot FROM json_each(s.schema #> '{schema, knot}')) k;
+  (SELECT value as knot FROM json_each(s.schema #> '{schema, knot}')) k
+ORDER by version desc;
 
 -- Attribute view -----------------------------------------------------------------------------------------------------
 -- The attribute view shows information about all the attributes in a schema
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE VIEW $schema.metadata.encapsulation$.\"_Attribute\"
+DROP MATERIALIZED VIEW IF EXISTS $schema.metadata.encapsulation$.\"_Attribute\";
+
+CREATE MATERIALIZED VIEW $schema.metadata.encapsulation$.\"_Attribute\"
 AS 
-SELECT 
-   s.version,
-   s.activation
+SELECT
+  s.version,
+  s.activation,
+  ((anchor ->> 'mnemonic') || '_' || (attr ->> 'mnemonic') || '_' || (anchor ->> 'descriptor') || '_' || (attr ->> 'descriptor'))::varchar as name,
+  (attr #>> '{metadata, capsule}')::varchar as capsule,
+  (attr ->> 'mnemonic')::varchar as mnemonic,
+  (attr ->> 'descriptor')::varchar as descriptor,
+  (attr ->> 'identity')::varchar as identity,
+  coalesce((attr #>> '{metadata, equivalent}')::boolean, false) as equivalent,
+  (attr #>> '{metadata, generator}')::boolean as generator,
+  (attr #>> '{metadata, assertive}')::boolean as assertive,
+  coalesce((attr #>> '{metadata, checksum}')::boolean, false) as checksum,
+  (attr #>> '{metadata, restatable}')::boolean as restatable,
+  (attr #>> '{metadata, idempotent}')::boolean as idempotent,
+  (anchor ->> 'mnemonic')::varchar as anchor_mnemonic,
+  (anchor ->> 'descriptor')::varchar as anchor_descriptor,
+  (anchor ->> 'identity')::varchar as anchor_identity,
+  (attr ->> 'dataRange')::varchar as data_range,
+  (attr ->> 'knotRange')::varchar as knot_range,
+  (attr ->> 'timeRange')::varchar as time_range
 FROM
-	$schema.metadata.encapsulation$.\"_Schema\" s;
+  aergo.\"_Schema\" s
+CROSS JOIN LATERAL
+  (SELECT value as anchor FROM json_each(s.schema #> '{schema, anchor}')) a
+CROSS JOIN LATERAL
+  (SELECT value as attr FROM json_each(anchor -> 'attribute')) r
+ORDER by version desc;
 
 -- Tie view -----------------------------------------------------------------------------------------------------------
 -- The tie view shows information about all the ties in a schema
 -----------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE VIEW $schema.metadata.encapsulation$.\"_Tie\"
+DROP MATERIALIZED VIEW IF EXISTS $schema.metadata.encapsulation$.\"_Tie\";
+
+CREATE MATERIALIZED VIEW $schema.metadata.encapsulation$.\"_Tie\"
 AS 
-SELECT 
-   s.version,
-   s.activation
-FROM
-	$schema.metadata.encapsulation$.\"_Schema\" s;
+WITH with_roles AS (
+  SELECT
+    s.*,
+    tie,
+    name,
+    (select json_agg(row_to_json(roles) order by n) from (
+      (select row_number() over () n, value \"role\" from json_each(tie -> 'anchorRole'))
+      union all
+      (select 900 + row_number() over () n, value \"role\" from json_each(tie -> 'knotRole'))
+    ) roles ) as roles
+  FROM
+    aergo.\"_Schema\" s
+CROSS JOIN LATERAL
+  (SELECT key as name, value as tie FROM json_each(s.schema #> '{schema, tie}')) t
+)
+SELECT
+  version,
+  activation,
+  name::varchar,
+  (tie #>> '{metadata, capsule}')::varchar as capsule,
+  json_array_length(roles) as number_of_roles,
+  (select array_agg(value#>>'{role, role}')::varchar[] from json_array_elements(roles)) roles,
+  (select count(*)::int from json_object_keys(tie -> 'anchorRole')) as number_of_anchors,
+  (select array_agg(value ->> 'type') from json_each(tie -> 'anchorRole'))::varchar[] as anchors,
+  (select count(*)::int from json_object_keys(tie -> 'knotRole')) as number_of_knots,
+  (select array_agg(value ->> 'type') from json_each(tie -> 'knotRole'))::varchar[] as knots,
+  (select count(*) from json_array_elements(roles) where value#>>'{role, identifier}' = 'true') number_of_identifiers,
+  (select array_agg(value#>>'{role, role}')::varchar[] from json_array_elements(roles) where value#>>'{role, identifier}' = 'true') identifiers,
+  (tie ->> 'timeRange')::varchar as time_range,
+  (tie #>> '{metadata, generator}')::boolean as generator,
+  (tie #>> '{metadata, assertive}')::boolean as assertive,
+  (tie #>> '{metadata, restatable}')::boolean as restatable,
+  (tie #>> '{metadata, idempotent}')::boolean as idempotent
+FROM with_roles
+ORDER by version desc;
 
 -- Evolution function -------------------------------------------------------------------------------------------------
 -- The evolution function shows what the schema looked like at the given
