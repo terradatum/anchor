@@ -96,7 +96,7 @@ SELECT
   (anchor #>> '{metadata, generator}')::boolean as generator,
   (select count(*)::int from json_object_keys(anchor -> 'attribute')) as number_of_attributes
 FROM
-  aergo.\"_Schema\" s
+  $schema.metadata.encapsulation$.\"_Schema\" s
 CROSS JOIN LATERAL
   (SELECT value as anchor FROM json_each(s.schema #> '{schema, anchor}')) a
 ORDER by version desc;
@@ -121,7 +121,7 @@ SELECT
   coalesce((knot #>> '{metadata, checksum}')::boolean, false) as checksum,
   coalesce((knot #>> '{metadata, equivalent}')::boolean, false) as equivalent
 FROM
-  aergo.\"_Schema\" s
+  $schema.metadata.encapsulation$.\"_Schema\" s
 CROSS JOIN LATERAL
   (SELECT value as knot FROM json_each(s.schema #> '{schema, knot}')) k
 ORDER by version desc;
@@ -154,7 +154,7 @@ SELECT
   (attr ->> 'knotRange')::varchar as knot_range,
   (attr ->> 'timeRange')::varchar as time_range
 FROM
-  aergo.\"_Schema\" s
+  $schema.metadata.encapsulation$.\"_Schema\" s
 CROSS JOIN LATERAL
   (SELECT value as anchor FROM json_each(s.schema #> '{schema, anchor}')) a
 CROSS JOIN LATERAL
@@ -179,7 +179,7 @@ WITH with_roles AS (
       (select 900 + row_number() over () n, value \"role\" from json_each(tie -> 'knotRole'))
     ) roles ) as roles
   FROM
-    aergo.\"_Schema\" s
+    $schema.metadata.encapsulation$.\"_Schema\" s
 CROSS JOIN LATERAL
   (SELECT key as name, value as tie FROM json_each(s.schema #> '{schema, tie}')) t
 )
@@ -211,6 +211,79 @@ ORDER by version desc;
 --
 -- @timepoint   The point in time to which you would like to travel.
 -----------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.\"_Evolution\"(
+  v_timepoint timestamp(6) with time zone DEFAULT now()
+) RETURNS TABLE(
+  version bigint,
+  name varchar,
+  activation timestamp(6) with time zone,
+  existence varchar
+)
+AS
+$$BODY$$
+WITH all_names AS (
+   SELECT name, version, activation FROM $schema.metadata.encapsulation$.\"_Anchor\" a
+   UNION ALL
+   SELECT name, version, activation FROM $schema.metadata.encapsulation$.\"_Knot\" k
+   UNION ALL
+   SELECT name, version, activation FROM $schema.metadata.encapsulation$.\"_Attribute\" b
+   UNION ALL
+   SELECT name, version, activation FROM $schema.metadata.encapsulation$.\"_Tie\" t
+)
+SELECT
+   v.version,
+   coalesce(s.name, t.name) AS name,
+   v.activation AS activation,
+   CASE
+      WHEN s.name is null THEN
+         CASE
+            WHEN (
+               SELECT 
+                 coalesce(min(activation), null)
+               FROM
+                 all_names
+               WHERE
+                 all_names.name = t.name
+            ) < (
+               SELECT
+                  coalesce(min(activation), null)
+               FROM
+                  $schema.metadata.encapsulation$.\"_Schema\"
+               WHERE
+                  activation >= v_timepoint
+            ) THEN 'Past' --didn't exist at specified time but exists now (created before specified time)
+            ELSE 'Future' --didn't exist at specified time but exists now (created after specified time)
+         END
+      WHEN t.name is null THEN 'Missing' --existed at specified time but doesn't exist now
+      ELSE 'Present'  --existed at specified time and also exists now
+   END AS Existence
+FROM (
+   SELECT
+      max(version) as version,
+      max(activation) as activation
+   FROM
+      $schema.metadata.encapsulation$.\"_Schema\"
+   WHERE
+      activation <= v_timepoint
+) v
+JOIN
+  all_names s
+ON
+   s.version = v.version
+FULL OUTER JOIN (
+   SELECT
+    distinct replace(replace(tablename, '_Posit', ''), '_Annex', '') as name
+   FROM 
+    pg_tables 
+   WHERE 
+    schemaname = 'aergo'
+   AND
+    left(tablename, 1) <> '_' 
+) t
+ON s.name = t.name
+$$BODY$$
+LANGUAGE SQL
 
 -- Drop Script Generator ----------------------------------------------------------------------------------------------
 -- generates a drop script, that must be run separately, dropping everything in an Anchor Modeled database
