@@ -29,15 +29,20 @@ CREATE SCHEMA IF NOT EXISTS $schema.metadata.encapsulation;
 -- tri_instead instead of INSERT trigger on first argument
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.tri_instead()
-    RETURNS trigger AS 
+    RETURNS trigger AS
     $$BODY$$
     DECLARE
         prefix varchar;
         rec record;
+        seq int;
     BEGIN
-    FOR i IN 1..TG_NARGS-1 LOOP
+    FOR i IN 3..TG_NARGS-1 LOOP
         prefix := TG_ARGV[i];
         IF (prefix = 'new') THEN
+            IF (TG_NARGS = 4) THEN
+                EXECUTE format('SELECT nextval(''%s'');', TG_ARGV[2]) INTO seq;
+                EXECUTE format('SET NEW.%s = %I;', TG_ARGV[1], seq);
+            END IF;
             rec := NEW;
         END IF;
         IF (prefix = 'old') THEN
@@ -45,7 +50,7 @@ CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.tri_instead()
         END IF;
         EXECUTE format('INSERT INTO %s_%s SELECT ($$1).*;', prefix, TG_ARGV[0]) USING rec;
     END LOOP;
-    RETURN null;
+    RETURN rec;
     END;
     $$BODY$$
 LANGUAGE plpgsql;

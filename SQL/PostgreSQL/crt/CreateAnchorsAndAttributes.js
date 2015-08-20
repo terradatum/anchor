@@ -13,17 +13,27 @@ var anchor;
 while (anchor = schema.nextAnchor()) {
     schema.setIdentityGenerator(anchor);
 /*~
+-- sequence for the anchor ------------------------------------------------------------------------------------
+-- \"$anchor.name$_seq\" on $anchor.capsule$.\"$anchor.name\".$anchor.identityColumnName
+-----------------------------------------------------------------------------------------------------------------------
+ CREATE SEQUENCE $anchor.capsule$.\"$anchor.name$_seq\";
+
 -- Anchor table -------------------------------------------------------------------------------------------------------
 -- $anchor.name table (with ${(anchor.attributes ? anchor.attributes.length : 0)}$ attributes)
 -----------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS $anchor.capsule$.\"$anchor.name\" (
-    $anchor.identityColumnName $anchor.identityGenerator not null,
+    $anchor.identityColumnName int NOT NULL,
     $(schema.METADATA)? $anchor.metadataColumnName $schema.metadata.metadataType not null, : $anchor.dummyColumnName bit null,
     constraint pk$anchor.name primary key (
         $anchor.identityColumnName
     )
 );
-~*/
+-- alter sequence add owner ------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+ ALTER SEQUENCE $anchor.capsule$.\"$anchor.name$_seq\"
+ OWNED BY $anchor.capsule$.\"$anchor.name\".$anchor.identityColumnName;
+
+ ~*/
     var knot, attribute;
     while (attribute = anchor.nextAttribute()) {
         schema.setIdentityGenerator(attribute);
@@ -47,7 +57,7 @@ CREATE TABLE IF NOT EXISTS $attribute.capsule$.\"$attribute.positName\" (
     constraint uq$attribute.positName unique (
         $attribute.anchorReferenceName,
         $attribute.changingColumnName,
-        $(attribute.hasChecksum())? $attribute.checksumColumnName : $attribute.valueColumnName 
+        $(attribute.hasChecksum())? $attribute.checksumColumnName : $attribute.valueColumnName
     )
 );
 ~*/
@@ -170,7 +180,7 @@ BEGIN
                 else 1
             end
        as $schema.reliableColumnType), 1);
- 
+
     RETURN NEW;
 END;
 $$BODY$$

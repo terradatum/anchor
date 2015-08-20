@@ -71,7 +71,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"tri_l$anchor.name\"()
 -- if_l$anchor.name$_post instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
-    RETURNS trigger AS 
+    RETURNS trigger AS
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
@@ -81,22 +81,10 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
         $anchor.identityColumnName $anchor.identity not null
     ) ON COMMIT DROP;
 
-    WITH ids as (
-        INSERT INTO $anchor.capsule$.\"$anchor.name\" (
-            $(schema.METADATA)? $anchor.metadataColumnName : $anchor.dummyColumnName
-        )
-        SELECT
-            $(schema.METADATA)? $anchor.metadataColumnName : null
+    INSERT INTO \"$anchor.mnemonic\" ($anchor.identityColumnName)
+    SELECT $anchor.identityColumnName
         FROM
-            new_l$anchor.name i
-        WHERE
-            i.$anchor.identityColumnName is null
-        RETURNING 
-          $anchor.identityColumnName
-    )
-    INSERT INTO \"$anchor.mnemonic\" ($anchor.identityColumnName) 
-    SELECT $anchor.identityColumnName 
-    FROM ids;
+        new_l$anchor.name;
 
     CREATE TEMP TABLE inserted (
         $anchor.identityColumnName $anchor.identity not null,
@@ -260,7 +248,7 @@ CREATE TRIGGER \"it_l$anchor.name$_pre\" BEFORE INSERT ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new');
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new');
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', '$anchor.identityColumnName', '$anchor.capsule$.\"$anchor.name$_seq\"', 'new');
 CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$\"();
@@ -272,7 +260,7 @@ CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$a
 -- uf_l$anchor.name instead of UPDATE trigger function on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
-    RETURNS trigger AS 
+    RETURNS trigger AS
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
@@ -417,7 +405,7 @@ CREATE TRIGGER \"ut_l$anchor.name$_pre\" BEFORE UPDATE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new','old');
 CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', '$anchor.identityColumnName', '$anchor.capsule$.\"$anchor.name$_seq\"', 'new', 'old');
 CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
@@ -429,7 +417,7 @@ CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$a
 -- df_l$anchor.name instead of DELETE trigger function on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
-    RETURNS trigger AS 
+    RETURNS trigger AS
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
@@ -476,7 +464,7 @@ CREATE TRIGGER \"dt_l$anchor.name$_pre\" BEFORE DELETE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('old');
 CREATE TRIGGER \"dt_l$anchor.name\" INSTEAD OF DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', '$anchor.identityColumnName', '$anchor.capsule$.\"$anchor.name$_seq\"', 'old');
 CREATE TRIGGER \"dt_l$anchor.name$_post\" AFTER DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"df_l$anchor.name\"();
