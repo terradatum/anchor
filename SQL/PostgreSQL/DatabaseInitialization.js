@@ -34,15 +34,10 @@ CREATE OR REPLACE FUNCTION $schema.metadata.encapsulation$.tri_instead()
     DECLARE
         prefix varchar;
         rec record;
-        seq int;
     BEGIN
-    FOR i IN 3..TG_NARGS-1 LOOP
+    FOR i IN 1..TG_NARGS-1 LOOP
         prefix := TG_ARGV[i];
         IF (prefix = 'new') THEN
-            IF (TG_NARGS = 4) THEN
-                EXECUTE format('SELECT nextval(''%s'');', TG_ARGV[2]) INTO seq;
-                EXECUTE format('SET NEW.%s = %I;', TG_ARGV[1], seq);
-            END IF;
             rec := NEW;
         END IF;
         IF (prefix = 'old') THEN
