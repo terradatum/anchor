@@ -67,7 +67,38 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"tri_l$anchor.name\"()
     $$BODY$$
     LANGUAGE plpgsql;
 
--- Insert trigger After Statement ------------------------------------------------------------------------------------
+-- Instead of Insert trigger -----------------------------------------------------------------------------------------------------
+-- it_l$anchor.name instead of INSERT trigger on l$anchor.name
+-----------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION $anchor.capsule$.\"io_l$anchor.name$\"()
+    RETURNS trigger AS
+    $$BODY$$
+    DECLARE
+        prefix varchar;
+        rec record;
+        seq int;
+    BEGIN
+    FOR i IN 0..TG_NARGS-1 LOOP
+        prefix := TG_ARGV[i];
+        IF (prefix = 'new') THEN
+            IF (TG_NARGS = 1) THEN
+                SELECT nextval('$anchor.capsule$.\"$anchor.name$_seq\"') INTO seq;
+                NEW.$anchor.identityColumnName := seq;
+            END IF;
+            rec := NEW;
+        END IF;
+        IF (prefix = 'old') THEN
+            rec := OLD;
+        END IF;
+        EXECUTE format('INSERT INTO %s_%s SELECT ($$1).*;', prefix, 'l$anchor.name') USING rec;
+    END LOOP;
+
+    RETURN rec;
+    END;
+    $$BODY$$
+    LANGUAGE plpgsql;
+
+ -- Insert trigger After Statement ------------------------------------------------------------------------------------
 -- if_l$anchor.name$_post instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
@@ -248,7 +279,7 @@ CREATE TRIGGER \"it_l$anchor.name$_pre\" BEFORE INSERT ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new');
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', '$anchor.identityColumnName', '$anchor.capsule$.\"$anchor.name$_seq\"', 'new');
+    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('new');
 CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$\"();
@@ -405,7 +436,7 @@ CREATE TRIGGER \"ut_l$anchor.name$_pre\" BEFORE UPDATE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new','old');
 CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', '$anchor.identityColumnName', '$anchor.capsule$.\"$anchor.name$_seq\"', 'new', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('new', 'old');
 CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
@@ -464,7 +495,7 @@ CREATE TRIGGER \"dt_l$anchor.name$_pre\" BEFORE DELETE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('old');
 CREATE TRIGGER \"dt_l$anchor.name\" INSTEAD OF DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', '$anchor.identityColumnName', '$anchor.capsule$.\"$anchor.name$_seq\"', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('old');
 CREATE TRIGGER \"dt_l$anchor.name$_post\" AFTER DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"df_l$anchor.name\"();
