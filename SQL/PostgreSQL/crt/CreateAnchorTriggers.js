@@ -112,6 +112,16 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
         $anchor.identityColumnName $anchor.identity not null
     ) ON COMMIT DROP;
 
+    INSERT INTO $anchor.capsule$.\"$anchor.name\" (
+        $anchor.identityColumnName,
+        $(schema.METADATA)? $anchor.metadataColumnName : $anchor.dummyColumnName
+    )
+    SELECT
+        $anchor.identityColumnName,
+        $(schema.METADATA)? $anchor.metadataColumnName : null
+    FROM
+        new_l$anchor.name i;
+
     INSERT INTO \"$anchor.mnemonic\" ($anchor.identityColumnName)
     SELECT $anchor.identityColumnName
         FROM
