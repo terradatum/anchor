@@ -16,7 +16,14 @@ while (anchor = schema.nextAnchor()) {
 -- sequence for the anchor ------------------------------------------------------------------------------------
 -- \"$anchor.name$_seq\" on $anchor.capsule$.\"$anchor.name\".$anchor.identityColumnName
 -----------------------------------------------------------------------------------------------------------------------
- CREATE SEQUENCE $anchor.capsule$.\"$anchor.name$_seq\";
+DO
+$$BODY$$
+BEGIN
+    CREATE SEQUENCE $anchor.capsule$.\"$anchor.name$_seq\";
+EXCEPTION WHEN duplicate_table THEN
+        -- do nothing, it's already there
+END
+$$BODY$$ LANGUAGE plpgsql;
 
 -- Anchor table -------------------------------------------------------------------------------------------------------
 -- $anchor.name table (with ${(anchor.attributes ? anchor.attributes.length : 0)}$ attributes)
