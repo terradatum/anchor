@@ -1,4 +1,5 @@
 // set up some iterators for the different components
+schema.serialization = { _serialization: JSON.stringify({ schema: schema }) };
 schema._iterator = {};
 schema._iterator.knot = 0;
 schema._iterator.anchor = 0;
