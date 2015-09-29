@@ -18,7 +18,6 @@ while (anchor = schema.nextAnchor()) {
     var knot, attribute;
     while (attribute = anchor.nextAttribute()) {
         if(attribute.isHistorized()) {
-            var returnType = attribute.isKnotted() ? attribute.knot.identity : (attribute.hasChecksum() ? 'varbinary(16)' : attribute.dataRange);
 /*~
 -- Attribute posit rewinder -------------------------------------------------------------------------------------------
 -- r$attribute.positName rewinding over changing time function
@@ -196,7 +195,7 @@ BEGIN
         @changingTimepoint $attribute.timeRange = '$schema.EOT',
         @positingTimepoint $schema.metadata.positingRange = '$schema.EOT'
     )
-    RETURNS $returnType
+    RETURNS $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     AS
     BEGIN RETURN (
         SELECT TOP 1
@@ -233,7 +232,7 @@ BEGIN
         @changingTimepoint $attribute.timeRange = '$schema.EOT',
         @positingTimepoint $schema.metadata.positingRange = '$schema.EOT'
     )
-    RETURNS $returnType
+    RETURNS $(attribute.isKnotted())? $attribute.knot.identity : $attribute.dataRange
     AS
     BEGIN RETURN (
         SELECT TOP 1

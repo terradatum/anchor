@@ -9,87 +9,79 @@ if(schema.serialization) {
 -- Schema table -------------------------------------------------------------------------------------------------------
 -- The schema table holds every xml that has been executed against the database
 -----------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._Schema', 'U') IS NULL
-   CREATE TABLE [$schema.metadata.encapsulation].[_Schema] (
-      [version] int identity(1, 1) not null,
-      [activation] $schema.metadata.chronon not null,
-      [schema] xml not null,
-      constraint pk_Schema primary key (
-         [version]
-      )
-   );
-GO
+CREATE TABLE IF NOT EXISTS _Schema (
+    version serial not null primary key,
+    activation $schema.metadata.chronon not null,
+    schema xml not null
+);
+   
 -- Insert the XML schema (as of now)
-INSERT INTO [$schema.metadata.encapsulation].[_Schema] (
-   [activation],
-   [schema]
+INSERT INTO _Schema (
+   activation,
+   schema
 )
 SELECT
-   current_timestamp,
-   N'$schema.serialization._serialization';
-GO
+   LOCALTIMESTAMP,
+   '$schema.serialization._serialization';
+
 -- Schema expanded view -----------------------------------------------------------------------------------------------
 -- A view of the schema table that expands the XML attributes into columns
 -----------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._Schema_Expanded', 'V') IS NOT NULL
-DROP VIEW [$schema.metadata.encapsulation].[_Schema_Expanded]
-GO
+DROP VIEW IF EXISTS _Schema_Expanded;
 
-CREATE VIEW [$schema.metadata.encapsulation].[_Schema_Expanded]
-AS
+CREATE OR REPLACE VIEW _Schema_Expanded AS
 SELECT
-	[version],
-	[activation],
-	[schema],
-	[schema].value('schema[1]/@format', 'nvarchar(max)') as [format],
-	[schema].value('schema[1]/@date', 'datetime') + [schema].value('schema[1]/@time', 'datetime') as [date],
-	[schema].value('schema[1]/metadata[1]/@temporalization', 'nvarchar(max)') as [temporalization],
-	[schema].value('schema[1]/metadata[1]/@databaseTarget', 'nvarchar(max)') as [databaseTarget],
-	[schema].value('schema[1]/metadata[1]/@changingRange', 'nvarchar(max)') as [changingRange],
-	[schema].value('schema[1]/metadata[1]/@encapsulation', 'nvarchar(max)') as [encapsulation],
-	[schema].value('schema[1]/metadata[1]/@identity', 'nvarchar(max)') as [identity],
-	[schema].value('schema[1]/metadata[1]/@metadataPrefix', 'nvarchar(max)') as [metadataPrefix],
-	[schema].value('schema[1]/metadata[1]/@metadataType', 'nvarchar(max)') as [metadataType],
-	[schema].value('schema[1]/metadata[1]/@metadataUsage', 'nvarchar(max)') as [metadataUsage],
-	[schema].value('schema[1]/metadata[1]/@changingSuffix', 'nvarchar(max)') as [changingSuffix],
-	[schema].value('schema[1]/metadata[1]/@identitySuffix', 'nvarchar(max)') as [identitySuffix],
-	[schema].value('schema[1]/metadata[1]/@positIdentity', 'nvarchar(max)') as [positIdentity],
-	[schema].value('schema[1]/metadata[1]/@positGenerator', 'nvarchar(max)') as [positGenerator],
-	[schema].value('schema[1]/metadata[1]/@positingRange', 'nvarchar(max)') as [positingRange],
-	[schema].value('schema[1]/metadata[1]/@positingSuffix', 'nvarchar(max)') as [positingSuffix],
-	[schema].value('schema[1]/metadata[1]/@positorRange', 'nvarchar(max)') as [positorRange],
-	[schema].value('schema[1]/metadata[1]/@positorSuffix', 'nvarchar(max)') as [positorSuffix],
-	[schema].value('schema[1]/metadata[1]/@reliabilityRange', 'nvarchar(max)') as [reliabilityRange],
-	[schema].value('schema[1]/metadata[1]/@reliabilitySuffix', 'nvarchar(max)') as [reliabilitySuffix],
-	[schema].value('schema[1]/metadata[1]/@reliableCutoff', 'nvarchar(max)') as [reliableCutoff],
-	[schema].value('schema[1]/metadata[1]/@deleteReliability', 'nvarchar(max)') as [deleteReliability],
-	[schema].value('schema[1]/metadata[1]/@reliableSuffix', 'nvarchar(max)') as [reliableSuffix],
-	[schema].value('schema[1]/metadata[1]/@partitioning', 'nvarchar(max)') as [partitioning],
-	[schema].value('schema[1]/metadata[1]/@entityIntegrity', 'nvarchar(max)') as [entityIntegrity],
-	[schema].value('schema[1]/metadata[1]/@restatability', 'nvarchar(max)') as [restatability],
-	[schema].value('schema[1]/metadata[1]/@idempotency', 'nvarchar(max)') as [idempotency],
-	[schema].value('schema[1]/metadata[1]/@assertiveness', 'nvarchar(max)') as [assertiveness],
-	[schema].value('schema[1]/metadata[1]/@naming', 'nvarchar(max)') as [naming],
-	[schema].value('schema[1]/metadata[1]/@positSuffix', 'nvarchar(max)') as [positSuffix],
-	[schema].value('schema[1]/metadata[1]/@annexSuffix', 'nvarchar(max)') as [annexSuffix],
-	[schema].value('schema[1]/metadata[1]/@chronon', 'nvarchar(max)') as [chronon],
-	[schema].value('schema[1]/metadata[1]/@now', 'nvarchar(max)') as [now],
-	[schema].value('schema[1]/metadata[1]/@dummySuffix', 'nvarchar(max)') as [dummySuffix],
-	[schema].value('schema[1]/metadata[1]/@statementTypeSuffix', 'nvarchar(max)') as [statementTypeSuffix],
-	[schema].value('schema[1]/metadata[1]/@checksumSuffix', 'nvarchar(max)') as [checksumSuffix],
-	[schema].value('schema[1]/metadata[1]/@businessViews', 'nvarchar(max)') as [businessViews],
-	[schema].value('schema[1]/metadata[1]/@equivalence', 'nvarchar(max)') as [equivalence],
-	[schema].value('schema[1]/metadata[1]/@equivalentSuffix', 'nvarchar(max)') as [equivalentSuffix],
-	[schema].value('schema[1]/metadata[1]/@equivalentRange', 'nvarchar(max)') as [equivalentRange]
-FROM
+	version,
+	activation,
+	schema,
+	(xpath('/schema[1]/@format[1]', schema))[1]::text as format,
+	(xpath('/schema[1]/@date[1]', schema))[1]::text as date,
+	(xpath('/schema[1]/@time[1]', schema))[1]::text as time,
+	(xpath('/schema[1]/metadata[1]/@temporalization[1]', schema))[1]::text as temporalization,
+	(xpath('/schema[1]/metadata[1]/@databaseTarget[1]', schema))[1]::text as databaseTarget,
+	(xpath('/schema[1]/metadata[1]/@changingRange[1]', schema))[1]::text as changingRange,
+	(xpath('/schema[1]/metadata[1]/@encapsulation[1]', schema))[1]::text as encapsulation,
+	(xpath('/schema[1]/metadata[1]/@identity[1]', schema))[1]::text as identity,
+	(xpath('/schema[1]/metadata[1]/@metadataPrefix[1]', schema))[1]::text as metadataPrefix,
+	(xpath('/schema[1]/metadata[1]/@metadataType[1]', schema))[1]::text as metadataType,
+	(xpath('/schema[1]/metadata[1]/@metadataUsage[1]', schema))[1]::text as metadataUsage,
+	(xpath('/schema[1]/metadata[1]/@changingSuffix[1]', schema))[1]::text as changingSuffix,
+	(xpath('/schema[1]/metadata[1]/@identitySuffix[1]', schema))[1]::text as identitySuffix,
+	(xpath('/schema[1]/metadata[1]/@positIdentity[1]', schema))[1]::text as positIdentity,
+	(xpath('/schema[1]/metadata[1]/@positGenerator[1]', schema))[1]::text as positGenerator,
+	(xpath('/schema[1]/metadata[1]/@positingRange[1]', schema))[1]::text as positingRange,
+	(xpath('/schema[1]/metadata[1]/@positingSuffix[1]', schema))[1]::text as positingSuffix,
+	(xpath('/schema[1]/metadata[1]/@positorRange[1]', schema))[1]::text as positorRange,
+	(xpath('/schema[1]/metadata[1]/@positorSuffix[1]', schema))[1]::text as positorSuffix,
+	(xpath('/schema[1]/metadata[1]/@reliabilityRange[1]', schema))[1]::text as reliabilityRange,
+	(xpath('/schema[1]/metadata[1]/@reliabilitySuffix[1]', schema))[1]::text as reliabilitySuffix,
+	(xpath('/schema[1]/metadata[1]/@reliableCutoff[1]', schema))[1]::text as reliableCutoff,
+	(xpath('/schema[1]/metadata[1]/@deleteReliability[1]', schema))[1]::text as deleteReliability,
+	(xpath('/schema[1]/metadata[1]/@reliableSuffix[1]', schema))[1]::text as reliableSuffix,
+	(xpath('/schema[1]/metadata[1]/@partitioning[1]', schema))[1]::text as partitioning,
+	(xpath('/schema[1]/metadata[1]/@entityIntegrity[1]', schema))[1]::text as entityIntegrity,
+	(xpath('/schema[1]/metadata[1]/@restatability[1]', schema))[1]::text as restatability,
+	(xpath('/schema[1]/metadata[1]/@idempotency[1]', schema))[1]::text as idempotency,
+	(xpath('/schema[1]/metadata[1]/@assertiveness[1]', schema))[1]::text as assertiveness,
+	(xpath('/schema[1]/metadata[1]/@naming[1]', schema))[1]::text as naming,
+	(xpath('/schema[1]/metadata[1]/@positSuffix[1]', schema))[1]::text as positSuffix,
+	(xpath('/schema[1]/metadata[1]/@annexSuffix[1]', schema))[1]::text as annexSuffix,
+	(xpath('/schema[1]/metadata[1]/@chronon[1]', schema))[1]::text as chronon,
+	(xpath('/schema[1]/metadata[1]/@now[1]', schema))[1]::text as now,
+	(xpath('/schema[1]/metadata[1]/@dummySuffix[1]', schema))[1]::text as dummySuffix,
+	(xpath('/schema[1]/metadata[1]/@statementTypeSuffix[1]', schema))[1]::text as statementTypeSuffix,
+	(xpath('/schema[1]/metadata[1]/@checksumSuffix[1]', schema))[1]::text as checksumSuffix,
+	(xpath('/schema[1]/metadata[1]/@businessViews[1]', schema))[1]::text as businessViews,
+	(xpath('/schema[1]/metadata[1]/@equivalence[1]', schema))[1]::text as equivalence,
+	(xpath('/schema[1]/metadata[1]/@equivalentSuffix[1]', schema))[1]::text as equivalentSuffix,
+	(xpath('/schema[1]/metadata[1]/@equivalentRange[1]', schema))[1]::text as equivalentRange
+FROM 
 	_Schema;
-GO
+
 -- Anchor view --------------------------------------------------------------------------------------------------------
 -- The anchor view shows information about all the anchors in a schema
 -----------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._Anchor', 'V') IS NOT NULL
-DROP VIEW [$schema.metadata.encapsulation].[_Anchor]
-GO
+DROP VIEW IF EXISTS _Anchor;
 
 CREATE VIEW [$schema.metadata.encapsulation].[_Anchor]
 AS
@@ -107,13 +99,11 @@ FROM
    [$schema.metadata.encapsulation].[_Schema] S
 CROSS APPLY
    S.[schema].nodes('/schema/anchor') as Nodeset(anchor);
-GO
+
 -- Knot view ----------------------------------------------------------------------------------------------------------
 -- The knot view shows information about all the knots in a schema
 -----------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._Knot', 'V') IS NOT NULL
-DROP VIEW [$schema.metadata.encapsulation].[_Knot]
-GO
+DROP VIEW IF EXISTS _Knot;
 
 CREATE VIEW [$schema.metadata.encapsulation].[_Knot]
 AS
@@ -133,13 +123,11 @@ FROM
    [$schema.metadata.encapsulation].[_Schema] S
 CROSS APPLY
    S.[schema].nodes('/schema/knot') as Nodeset(knot);
-GO
+
 -- Attribute view -----------------------------------------------------------------------------------------------------
 -- The attribute view shows information about all the attributes in a schema
 -----------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._Attribute', 'V') IS NOT NULL
-DROP VIEW [$schema.metadata.encapsulation].[_Attribute]
-GO
+DROP VIEW IF EXISTS _Attribute;
 
 CREATE VIEW [$schema.metadata.encapsulation].[_Attribute]
 AS
@@ -172,13 +160,11 @@ CROSS APPLY
    S.[schema].nodes('/schema/anchor') as ParentNodeset(anchor)
 OUTER APPLY
    ParentNodeset.anchor.nodes('attribute') as Nodeset(attribute);
-GO
+
 -- Tie view -----------------------------------------------------------------------------------------------------------
 -- The tie view shows information about all the ties in a schema
 -----------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._Tie', 'V') IS NOT NULL
-DROP VIEW [$schema.metadata.encapsulation].[_Tie]
-GO
+DROP VIEW IF EXISTS _Tie;
 
 CREATE VIEW [$schema.metadata.encapsulation].[_Tie]
 AS
@@ -219,7 +205,7 @@ FROM
    [$schema.metadata.encapsulation].[_Schema] S
 CROSS APPLY
    S.[schema].nodes('/schema/tie') as Nodeset(tie);
-GO
+
 -- Evolution function -------------------------------------------------------------------------------------------------
 -- The evolution function shows what the schema looked like at the given
 -- point in time with additional information about missing or added
@@ -232,7 +218,7 @@ DROP FUNCTION [$schema.metadata.encapsulation].[_Evolution];
 GO
 
 CREATE FUNCTION [$schema.metadata.encapsulation].[_Evolution] (
-    @timepoint AS $schema.metadata.chronon
+    @timepoint AS DATETIME2(7)
 )
 RETURNS TABLE
 RETURN
@@ -267,25 +253,25 @@ FROM (
 ) V
 JOIN (
    SELECT
-      [capsule] + '.' + [name] AS [name],
+      [name],
       [version]
    FROM
       [$schema.metadata.encapsulation].[_Anchor] a
    UNION ALL
    SELECT
-      [capsule] + '.' + [name] AS [name],
+      [name],
       [version]
    FROM
       [$schema.metadata.encapsulation].[_Knot] k
    UNION ALL
    SELECT
-      [capsule] + '.' + [name] AS [name],
+      [name],
       [version]
    FROM
       [$schema.metadata.encapsulation].[_Attribute] b
    UNION ALL
    SELECT
-      [capsule] + '.' + [name] AS [name],
+      [name],
       [version]
    FROM
       [$schema.metadata.encapsulation].[_Tie] t
@@ -293,19 +279,15 @@ JOIN (
 ON
    S.[version] = V.[version]
 FULL OUTER JOIN (
-   SELECT 
-      s.[name] + '.' + t.[name] AS [name],
-      t.[create_date]
+   SELECT
+      [name],
+      [create_date]
    FROM
-      sys.tables t
-   JOIN
-      sys.schemas s
-   ON
-      s.schema_id = t.schema_id
+      sys.tables
    WHERE
-      t.[type] like '%U%'
+      [type] like '%U%'
    AND
-      LEFT(t.[name], 1) <> '_'
+      LEFT([name], 1) <> '_'
 ) T
 ON
    S.[name] = T.[name];
@@ -319,220 +301,155 @@ GO
 
 CREATE PROCEDURE [$schema.metadata.encapsulation]._GenerateDropScript (
    @exclusionPattern varchar(42) = '[_]%', -- exclude Metadata by default
-   @inclusionPattern varchar(42) = '%', -- include everything by default
-   @directions varchar(42) = 'Upwards, Downwards', -- do both up and down by default
-   @qualifiedName varchar(555) = null -- can specify a single object
+   @inclusionPattern varchar(42) = '%'     -- include everything by default
 )
 AS
 BEGIN
-   with constructs as (
-      select distinct
-         0 as ordinal,
-         '[' + capsule + '].[' + name + ']' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Anchor
-      union all
-      select distinct
-         1 as ordinal,
-         '[' + capsule + '].[' + name + ']' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Tie
-      union all
-      select distinct
-         2 as ordinal,
-         '[' + capsule + '].[' + name + '_Annex]' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Tie
-      union all
-      select distinct
-         3 as ordinal,
-         '[' + capsule + '].[' + name + '_Posit]' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Tie
-      union all
-      select distinct
-         4 as ordinal,
-         '[' + capsule + '].[' + name + ']' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Attribute
-      union all
-      select distinct
-         5 as ordinal,
-         '[' + capsule + '].[' + name + '_Annex]' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Attribute
-      union all
-      select distinct
-         6 as ordinal,
-         '[' + capsule + '].[' + name + '_Posit]' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Attribute
-      union all
-      select distinct
-         7 as ordinal,
-         '[' + capsule + '].[' + name + ']' as qualifiedName
-      from
-         [$schema.metadata.encapsulation]._Knot
-   ),
-   includedConstructs as (
-      select
-         c.ordinal,
-         cast(c.qualifiedName as nvarchar(517)) as qualifiedName,
-         o.[object_id],
-         o.[type]
-      from
-         constructs c
-      join
+   DECLARE @xml XML;
+   WITH objects AS (
+      SELECT
+         'DROP ' + ft.[type] + ' ' + fn.[name] + '; -- ' + fn.[description] as [statement],
+         row_number() OVER (
+            ORDER BY
+               -- restatement finders last
+               CASE dc.[description]
+                  WHEN 'restatement finder' THEN 1
+                  ELSE 0
+               END ASC,
+               -- order based on type
+               CASE ft.[type]
+                  WHEN 'PROCEDURE' THEN 1
+                  WHEN 'FUNCTION' THEN 2
+                  WHEN 'VIEW' THEN 3
+                  WHEN 'TABLE' THEN 4
+                  ELSE 5
+               END ASC,
+               -- order within type
+               CASE dc.[description]
+                  WHEN 'key generator' THEN 1
+                  WHEN 'latest perspective' THEN 2
+                  WHEN 'current perspective' THEN 3
+                  WHEN 'difference perspective' THEN 4
+                  WHEN 'point-in-time perspective' THEN 5
+                  WHEN 'time traveler' THEN 6
+                  WHEN 'rewinder' THEN 7
+                  WHEN 'assembled view' THEN 8
+                  WHEN 'annex table' THEN 9
+                  WHEN 'posit table' THEN 10
+                  WHEN 'table' THEN 11
+                  WHEN 'restatement finder' THEN 12
+                  ELSE 13
+               END,
+               -- order within description
+               CASE ft.[type]
+                  WHEN 'TABLE' THEN
+                     CASE cl.[class]
+                        WHEN 'Attribute' THEN 1
+                        WHEN 'Attribute Annex' THEN 2
+                        WHEN 'Attribute Posit' THEN 3
+                        WHEN 'Tie' THEN 4
+                        WHEN 'Anchor' THEN 5
+                        WHEN 'Knot' THEN 6
+                        ELSE 7
+                     END
+                  ELSE
+                     CASE cl.[class]
+                        WHEN 'Anchor' THEN 1
+                        WHEN 'Attribute' THEN 2
+                        WHEN 'Attribute Annex' THEN 3
+                        WHEN 'Attribute Posit' THEN 4
+                        WHEN 'Tie' THEN 5
+                        WHEN 'Knot' THEN 6
+                        ELSE 7
+                     END
+               END,
+               -- finally alphabetically
+               o.[name] ASC
+         ) AS [ordinal]
+      FROM
          sys.objects o
-      on
-         o.object_id = OBJECT_ID(c.qualifiedName)
-      where
-         OBJECT_ID(c.qualifiedName) = OBJECT_ID(isnull(@qualifiedName, c.qualifiedName))
-   ),
-   relatedUpwards as (
-      select
-         c.[object_id],
-         c.[type],
-         c.qualifiedName,
-         c.ordinal,
-         1 as depth
-      from
-         includedConstructs c
-      union all
-      select
-         o.[object_id],
-         o.[type],
-         n.qualifiedName,
-         c.ordinal,
-         c.depth + 1 as depth
-      from
-         relatedUpwards c
-      cross apply
-         sys.dm_sql_referencing_entities(c.qualifiedName, 'OBJECT') r
-      cross apply (
-         select
-            cast('[' + r.referencing_schema_name + '].[' + r.referencing_entity_name + ']' as nvarchar(517))
-      ) n (qualifiedName)
-      join
-         sys.objects o
-      on
-         o.object_id = r.referencing_id
-      and
-         o.type not in ('S')
-   ),
-   relatedDownwards as (
-      select
-         cast('Upwards' as varchar(42)) as [relationType],
-         c.[object_id],
-         c.[type],
-         c.qualifiedName,
-         c.ordinal,
-         c.depth
-      from
-         relatedUpwards c 
-      union all
-      select
-         cast('Downwards' as varchar(42)) as [relationType],
-         o.[object_id],
-         o.[type],
-         n.qualifiedName,
-         c.ordinal,
-         c.depth - 1 as depth
-      from
-         relatedDownwards c
-      cross apply
-         sys.dm_sql_referenced_entities(c.qualifiedName, 'OBJECT') r
-      cross apply (
-         select
-            cast('[' + r.referenced_schema_name + '].[' + r.referenced_entity_name + ']' as nvarchar(517))
-      ) n (qualifiedName)
-      join
-         sys.objects o
-      on
-         o.object_id = r.referenced_id
-      and
-         o.type not in ('S')
-      where
-         r.referenced_minor_id = 0
-      and 
-         r.referenced_id <> OBJECT_ID(c.qualifiedName)
-   ),
-   affectedObjects as (
-      select
-         [object_id],
-         [type],
-         [qualifiedName],
-         max([ordinal]) as ordinal,
-         min([depth]) as depth
-      from
-         relatedDownwards
-      where
-         [qualifiedName] not like @exclusionPattern
-      and
-         [qualifiedName] like @inclusionPattern
-      and
-         @directions like '%' + [relationType] + '%'
-      group by
-         [object_id],
-         [type],
-         [qualifiedName]
-   ),
-   dropList as (
-      select distinct
-         objectType,
-         qualifiedName,
-         dropOrder
-      from (
-         select
-            *,
-            dense_rank() over (
-               order by
-                  case [type]
-                     when 'TR' then 1 -- SQL_TRIGGER
-                     when 'P' then 2 -- SQL_STORED_PROCEDURE
-                     when 'V' then 3 -- VIEW
-                     when 'IF' then 4 -- SQL_INLINE_TABLE_VALUED_FUNCTION
-                     when 'FN' then 5 -- SQL_SCALAR_FUNCTION
-                     when 'PK' then 6 -- PRIMARY_KEY_CONSTRAINT
-                     when 'UQ' then 7 -- UNIQUE_CONSTRAINT
-                     when 'F' then 8 -- FOREIGN_KEY_CONSTRAINT
-                     when 'U' then 9 -- USER_TABLE
-                  end asc,
-                  ordinal asc,
-                  depth desc
-            ) as dropOrder
-         from
-            affectedObjects
-         cross apply (
-            select
-               case [type]
-                  when 'TR' then 'TRIGGER'
-                  when 'V' then 'VIEW'
-                  when 'IF' then 'FUNCTION'
-                  when 'FN' then 'FUNCTION'
-                  when 'P' then 'PROCEDURE'
-                  when 'PK' then 'CONSTRAINT'
-                  when 'UQ' then 'CONSTRAINT'
-                  when 'F' then 'CONSTRAINT'
-                  when 'U' then 'TABLE'
-               end
-         ) t (objectType)
-         where
-            t.objectType in (
-               'VIEW',
-               'FUNCTION',
-               'PROCEDURE',
-               'TABLE'
-            )
-      ) r
+      JOIN
+         sys.schemas s
+      ON
+         s.[schema_id] = o.[schema_id]
+      CROSS APPLY (
+         SELECT
+            CASE
+               WHEN o.[name] LIKE '[_]%'
+               COLLATE Latin1_General_BIN THEN 'Metadata'
+               WHEN o.[name] LIKE '%[A-Z][A-Z][_][a-z]%[A-Z][A-Z][_][a-z]%'
+               COLLATE Latin1_General_BIN THEN 'Tie'
+               WHEN o.[name] LIKE '%[A-Z][A-Z][_][A-Z][A-Z][A-Z][_][A-Z]%[_]%'
+               COLLATE Latin1_General_BIN THEN 'Attribute'
+               WHEN o.[name] LIKE '%[A-Z][A-Z][A-Z][_][A-Z]%'
+               COLLATE Latin1_General_BIN THEN 'Knot'
+               WHEN o.[name] LIKE '%[A-Z][A-Z][_][A-Z]%'
+               COLLATE Latin1_General_BIN THEN 'Anchor'
+               ELSE 'Other'
+            END
+      ) cl ([class])
+      CROSS APPLY (
+         SELECT
+            CASE o.[type]
+               WHEN 'P'  THEN 'PROCEDURE'
+               WHEN 'IF' THEN 'FUNCTION'
+               WHEN 'FN' THEN 'FUNCTION'
+               WHEN 'V'  THEN 'VIEW'
+               WHEN 'U'  THEN 'TABLE'
+            END
+      ) ft ([type])
+      CROSS APPLY (
+         SELECT
+            CASE
+               WHEN ft.[type] = 'PROCEDURE' AND cl.[class] = 'Anchor' AND o.[name] LIKE 'k%'
+               COLLATE Latin1_General_BIN THEN 'key generator'
+               WHEN ft.[type] = 'FUNCTION' AND o.[name] LIKE 't%'
+               COLLATE Latin1_General_BIN THEN 'time traveler'
+               WHEN ft.[type] = 'FUNCTION' AND o.[name] LIKE 'rf%'
+               COLLATE Latin1_General_BIN THEN 'restatement finder'
+               WHEN ft.[type] = 'FUNCTION' AND o.[name] LIKE 'r%'
+               COLLATE Latin1_General_BIN THEN 'rewinder'
+               WHEN ft.[type] = 'VIEW' AND o.[name] LIKE 'l%'
+               COLLATE Latin1_General_BIN THEN 'latest perspective'
+               WHEN ft.[type] = 'FUNCTION' AND o.[name] LIKE 'p%'
+               COLLATE Latin1_General_BIN THEN 'point-in-time perspective'
+               WHEN ft.[type] = 'VIEW' AND o.[name] LIKE 'n%'
+               COLLATE Latin1_General_BIN THEN 'current perspective'
+               WHEN ft.[type] = 'FUNCTION' AND o.[name] LIKE 'd%'
+               COLLATE Latin1_General_BIN THEN 'difference perspective'
+               WHEN ft.[type] = 'VIEW' AND cl.[class] = 'Attribute'
+               COLLATE Latin1_General_BIN THEN 'assembled view'
+               WHEN ft.[type] = 'TABLE' AND o.[name] LIKE '%Annex'
+               COLLATE Latin1_General_BIN THEN 'annex table'
+               WHEN ft.[type] = 'TABLE' AND o.[name] LIKE '%Posit'
+               COLLATE Latin1_General_BIN THEN 'posit table'
+               WHEN ft.[type] = 'TABLE'
+               COLLATE Latin1_General_BIN THEN 'table'
+               ELSE 'other'
+            END
+      ) dc ([description])
+      CROSS APPLY (
+         SELECT
+            s.[name] + '.' + o.[name],
+            cl.[class] + ' ' + dc.[description]
+      ) fn ([name], [description])
+      WHERE
+         o.[type] IN ('P', 'IF', 'FN', 'V', 'U')
+      AND
+         o.[name] NOT LIKE ISNULL(@exclusionPattern, '')
+      AND
+         o.[name] LIKE ISNULL(@inclusionPattern, '%')
    )
-   select
-      'DROP ' + objectType + ' ' + qualifiedName + ';' + CHAR(13) as [text()]
-   from
-      dropList d
-   order by
-      dropOrder asc
-   for xml path('');
+   SELECT @xml = (
+       SELECT
+          [statement] + CHAR(13) as [text()]
+       FROM
+          objects
+       ORDER BY
+          [ordinal]
+       FOR XML PATH('')
+   );
+   SELECT isnull(@xml.value('.', 'varchar(max)'), '');  
 END
 GO
 -- Database Copy Script Generator -------------------------------------------------------------------------------------
@@ -546,19 +463,17 @@ CREATE PROCEDURE [$schema.metadata.encapsulation]._GenerateCopyScript (
 	@source varchar(123),
 	@target varchar(123)
 )
-as
+as 
 begin
-	declare @R char(1);
-    set @R = CHAR(13);
+	declare @R char(1) = CHAR(13);
 	-- stores the built SQL code
-	declare @sql varchar(max);
-    set @sql = 'USE ' + @target + ';' + @R;
+	declare @sql varchar(max) = 'USE ' + @target + ';' + @R;
 	declare @xml xml;
 
 	-- find which version of the schema that is in effect
 	declare @version int;
-	select
-		@version = max([version])
+	select 
+		@version = max([version]) 
 	from
 		_Schema;
 
@@ -575,29 +490,29 @@ begin
 		@positSuffix = positSuffix,
 		@temporalization = temporalization
 	from
-		_Schema_Expanded
+		_Schema_Expanded 
 	where
 		[version] = @version;
 
 	-- build non-equivalent knot copy
 	set @xml = (
-		select
+		select 
 			case
-				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' ON;' + @R
+				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' ON;' + @R 
 			end,
 			'INSERT INTO ' + [capsule] + '.' + [name] + '(' + [columns] + ')' + @R +
 			'SELECT ' + [columns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + ';' + @R,
 			case
-				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' OFF;' + @R
+				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' OFF;' + @R 
 			end
-		from
+		from 
 			_Knot x
 		cross apply (
 			select stuff((
-				select
+				select 
 					', ' + [name]
 				from
-					sys.columns
+					sys.columns 
 				where
 					[object_Id] = object_Id(x.[capsule] + '.' + x.[name])
 				and
@@ -612,28 +527,28 @@ begin
 		for xml path('')
 	);
 	set @sql = @sql + isnull(@xml.value('.', 'varchar(max)'), '');
-
+	
 	-- build equivalent knot copy
 	set @xml = (
-		select
+		select 
 			case
-				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @identitySuffix + ' ON;' + @R
+				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @identitySuffix + ' ON;' + @R 
 			end,
 			'INSERT INTO ' + [capsule] + '.' + [name] + '_' + @identitySuffix + '(' + [columns] + ')' + @R +
 			'SELECT ' + [columns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + '_' + @identitySuffix + ';' + @R,
 			case
-				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @identitySuffix + ' OFF;' + @R
+				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @identitySuffix + ' OFF;' + @R 
 			end,
 			'INSERT INTO ' + [capsule] + '.' + [name] + '_' + @equivalentSuffix + '(' + [columns] + ')' + @R +
 			'SELECT ' + [columns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + '_' + @equivalentSuffix + ';' + @R
-		from
+		from 
 			_Knot x
 		cross apply (
 			select stuff((
-				select
+				select 
 					', ' + [name]
 				from
-					sys.columns
+					sys.columns 
 				where
 					[object_Id] = object_Id(x.[capsule] + '.' + x.[name])
 				and
@@ -651,23 +566,23 @@ begin
 
 	-- build anchor copy
 	set @xml = (
-		select
+		select 
 			case
-				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' ON;' + @R
+				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' ON;' + @R 
 			end,
 			'INSERT INTO ' + [capsule] + '.' + [name] + '(' + [columns] + ')' + @R +
 			'SELECT ' + [columns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + ';' + @R,
 			case
-				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' OFF;' + @R
+				when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + ' OFF;' + @R 
 			end
-		from
+		from 
 			_Anchor x
 		cross apply (
 			select stuff((
-				select
+				select 
 					', ' + [name]
 				from
-					sys.columns
+					sys.columns 
 				where
 					[object_Id] = object_Id(x.[capsule] + '.' + x.[name])
 				and
@@ -685,25 +600,25 @@ begin
 	if (@temporalization = 'crt')
 	begin
 		set @xml = (
-			select
+			select 
 				case
-					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' ON;' + @R
+					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' ON;' + @R 
 				end,
 				'INSERT INTO ' + [capsule] + '.' + [name] + '_' + @positSuffix + '(' + [positColumns] + ')' + @R +
 				'SELECT ' + [positColumns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + '_' + @positSuffix + ';' + @R,
 				case
-					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' OFF;' + @R
+					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' OFF;' + @R 
 				end,
 				'INSERT INTO ' + [capsule] + '.' + [name] + '_' + @annexSuffix + '(' + [annexColumns] + ')' + @R +
 				'SELECT ' + [annexColumns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + '_' + @annexSuffix + ';' + @R
-			from
+			from 
 				_Attribute x
 			cross apply (
 				select stuff((
-					select
+					select 
 						', ' + [name]
 					from
-						sys.columns
+						sys.columns 
 					where
 						[object_Id] = object_Id(x.[capsule] + '.' + x.[name] + '_' + @positSuffix)
 					and
@@ -713,10 +628,10 @@ begin
 			) pc ([positColumns])
 			cross apply (
 				select stuff((
-					select
+					select 
 						', ' + [name]
 					from
-						sys.columns
+						sys.columns 
 					where
 						[object_Id] = object_Id(x.[capsule] + '.' + x.[name] + '_' + @annexSuffix)
 					and
@@ -732,17 +647,17 @@ begin
 	else -- uni
 	begin
 		set @xml = (
-			select
+			select 
 				'INSERT INTO ' + [capsule] + '.' + [name] + '(' + [columns] + ')' + @R +
 				'SELECT ' + [columns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + ';' + @R
-			from
+			from 
 				_Attribute x
 			cross apply (
 				select stuff((
-					select
+					select 
 						', ' + [name]
 					from
-						sys.columns
+						sys.columns 
 					where
 						[object_Id] = object_Id(x.[capsule] + '.' + x.[name])
 					and
@@ -761,25 +676,25 @@ begin
 	if (@temporalization = 'crt')
 	begin
 		set @xml = (
-			select
+			select 
 				case
-					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' ON;' + @R
+					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' ON;' + @R 
 				end,
 				'INSERT INTO ' + [capsule] + '.' + [name] + '_' + @positSuffix + '(' + [positColumns] + ')' + @R +
 				'SELECT ' + [positColumns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + '_' + @positSuffix + ';' + @R,
 				case
-					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' OFF;' + @R
+					when [generator] = 'true' then 'SET IDENTITY_INSERT ' + [capsule] + '.' + [name] + '_' + @positSuffix + ' OFF;' + @R 
 				end,
 				'INSERT INTO ' + [capsule] + '.' + [name] + '_' + @annexSuffix + '(' + [annexColumns] + ')' + @R +
 				'SELECT ' + [annexColumns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + '_' + @annexSuffix + ';' + @R
-			from
+			from 
 				_Tie x
 			cross apply (
 				select stuff((
-					select
+					select 
 						', ' + [name]
 					from
-						sys.columns
+						sys.columns 
 					where
 						[object_Id] = object_Id(x.[capsule] + '.' + x.[name] + '_' + @positSuffix)
 					and
@@ -789,10 +704,10 @@ begin
 			) pc ([positColumns])
 			cross apply (
 				select stuff((
-					select
+					select 
 						', ' + [name]
 					from
-						sys.columns
+						sys.columns 
 					where
 						[object_Id] = object_Id(x.[capsule] + '.' + x.[name] + '_' + @annexSuffix)
 					and
@@ -808,17 +723,17 @@ begin
 	else -- uni
 	begin
 		set @xml = (
-			select
+			select 
 				'INSERT INTO ' + [capsule] + '.' + [name] + '(' + [columns] + ')' + @R +
 				'SELECT ' + [columns] + ' FROM ' + @source + '.' + [capsule] + '.' + [name] + ';' + @R
-			from
+			from 
 				_Tie x
 			cross apply (
 				select stuff((
-					select
+					select 
 						', ' + [name]
 					from
-						sys.columns
+						sys.columns 
 					where
 						[object_Id] = object_Id(x.[capsule] + '.' + x.[name])
 					and
@@ -833,80 +748,7 @@ begin
 	end
 	set @sql = @sql + isnull(@xml.value('.', 'varchar(max)'), '');
 
-	select @sql for xml path('');
+	select @sql;
 end
-go
--- Delete Everything with a Certain Metadata Id -----------------------------------------------------------------------
--- deletes all rows from all tables that have the specified metadata id
------------------------------------------------------------------------------------------------------------------------
-IF Object_ID('$schema.metadata.encapsulation$._DeleteWhereMetadataEquals', 'P') IS NOT NULL
-DROP PROCEDURE [$schema.metadata.encapsulation].[_DeleteWhereMetadataEquals];
-GO
-
-CREATE PROCEDURE [$schema.metadata.encapsulation]._DeleteWhereMetadataEquals (
-	@metadataID int,
-	@schemaVersion int = null,
-	@includeKnots bit = 0
-)
-as
-begin
-	declare @sql varchar(max);
-	set @sql = 'print ''Null is not a valid value for @metadataId''';
-
-	if(@metadataId is not null)
-	begin
-		if(@schemaVersion is null)
-		begin
-			select
-				@schemaVersion = max(Version)
-			from
-				_Schema;
-		end;
-
-		with constructs as (
-			select
-				'l' + name as name,
-				2 as prio,
-				'Metadata_' + name as metadataColumn
-			from
-				_Tie
-			where
-				[version] = @schemaVersion
-			union all
-			select
-				'l' + name as name,
-				3 as prio,
-				'Metadata_' + mnemonic as metadataColumn
-			from
-				_Anchor
-			where
-				[version] = @schemaVersion
-			union all
-			select
-				name,
-				4 as prio,
-				'Metadata_' + mnemonic as metadataColumn
-			from
-				_Knot
-			where
-				[version] = @schemaVersion
-			and
-				@includeKnots = 1
-		)
-		select
-			@sql = (
-				select
-					'DELETE FROM ' + name + ' WHERE ' + metadataColumn + ' = ' + cast(@metadataId as varchar(10)) + '; '
-				from
-					constructs
-        order by
-					prio, name
-				for xml
-					path('')
-			);
-	end
-	exec(@sql);
-end
-go
 ~*/
 }
