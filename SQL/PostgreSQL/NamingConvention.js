@@ -2,6 +2,7 @@
 
 // delimiter that is used in the naming convention
 var D = '_';
+var seq = 'seq';
 
 // used in business naming
 var businessIdentity = 'id';
@@ -70,6 +71,7 @@ while (anchor = schema.nextAnchor()) {
         attribute.name = attribute.uniqueMnemonic + D + anchor.descriptor + D + attribute.descriptor;
         attribute.businessName = attribute.descriptor;
         attribute.positName = attribute.name + D + schema.metadata.positSuffix;
+        attribute.sequenceName = attribute.positName + D + attribute.uniqueMnemonic.toLowerCase() + D + 'id' + D + seq;
         attribute.annexName = attribute.name + D + schema.metadata.annexSuffix;
         attribute.checksumColumnName = attribute.uniqueMnemonic + D + schema.metadata.checksumSuffix;
         attribute.identityColumnName = attribute.uniqueMnemonic + D + schema.metadata.identitySuffix;

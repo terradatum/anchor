@@ -4,6 +4,18 @@
 -- Sets up a table containing the list of available positors. Since at least one positor
 -- must be available the table is set up with a default positor with identity 0.
 --
+
+-- sequence for the positor ------------------------------------------------------------------------------------
+DO
+$$BODY$$
+BEGIN
+    CREATE SEQUENCE $schema.metadata.encapsulation$.\"_$schema.metadata.positorSuffix$_seq\";
+EXCEPTION WHEN duplicate_table THEN
+        -- do nothing, it's already there
+END
+$$BODY$$ LANGUAGE plpgsql;
+
+
 -- Positor table ------------------------------------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS $schema.metadata.encapsulation\.\"_$schema.metadata.positorSuffix\"" (

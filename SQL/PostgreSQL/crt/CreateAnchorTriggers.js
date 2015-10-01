@@ -98,34 +98,19 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"io_l$anchor.name$\"()
     $$BODY$$
     LANGUAGE plpgsql;
 
- -- Insert trigger After Statement ------------------------------------------------------------------------------------
+-- Insert trigger After Statement ------------------------------------------------------------------------------------
 -- if_l$anchor.name$_post instead of INSERT trigger on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
-    RETURNS trigger AS
+    RETURNS trigger AS 
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
     now := $schema.metadata.now;
-    CREATE TEMP TABLE \"$anchor.mnemonic\" (
-        Row serial not null CONSTRAINT pk_row primary key,
-        $anchor.identityColumnName $anchor.identity not null
-    ) ON COMMIT DROP;
 
-    INSERT INTO $anchor.capsule$.\"$anchor.name\" (
-        $anchor.identityColumnName,
-        $(schema.METADATA)? $anchor.metadataColumnName : $anchor.dummyColumnName
-    )
-    SELECT
-        $anchor.identityColumnName,
-        $(schema.METADATA)? $anchor.metadataColumnName : null
-    FROM
-        new_l$anchor.name i;
-
-    INSERT INTO \"$anchor.mnemonic\" ($anchor.identityColumnName)
-    SELECT $anchor.identityColumnName
-        FROM
-        new_l$anchor.name;
+    INSERT INTO $anchor.capsule$.\"$anchor.name\" ($anchor.identityColumnName) 
+    SELECT $anchor.identityColumnName 
+    FROM new_l$anchor.name;
 
     CREATE TEMP TABLE inserted (
         $anchor.identityColumnName $anchor.identity not null,
@@ -134,6 +119,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
         while (attribute = anchor.nextAttribute()) {
 /*~
         $(schema.IMPROVED)? $attribute.anchorReferenceName $anchor.identity null,
+        $attribute.identityColumnName $attribute.identity null,
         $(schema.METADATA)? $attribute.metadataColumnName $schema.metadata.metadataType null,
         $(attribute.isHistorized())? $attribute.changingColumnName $attribute.timeRange null,
         $attribute.positorColumnName $schema.metadata.positorRange null,
@@ -159,12 +145,13 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
     ) ON COMMIT DROP;
     INSERT INTO inserted
     SELECT
-        COALESCE(i.$anchor.identityColumnName, a.$anchor.identityColumnName),
+        COALESCE(i.$anchor.identityColumnName),
         $(schema.METADATA)? i.$anchor.metadataColumnName,
  ~*/
         while (attribute = anchor.nextAttribute()) {
 /*~
-        $(schema.IMPROVED)? COALESCE(i.$attribute.anchorReferenceName, i.$anchor.identityColumnName, a.$anchor.identityColumnName),
+        $(schema.IMPROVED)? COALESCE(i.$attribute.anchorReferenceName, i.$anchor.identityColumnName),
+        NEXTVAL('$attribute.capsule$.\"$attribute.sequenceName\"'::regclass),
         $(schema.METADATA)? COALESCE(i.$attribute.metadataColumnName, i.$anchor.metadataColumnName),
         $(attribute.isHistorized())? COALESCE(i.$attribute.changingColumnName, now),
         COALESCE(i.$attribute.positorColumnName, i.$schema.metadata.positorSuffix, 0),
@@ -189,62 +176,53 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
 ~*/
         }
 /*~
-    FROM (
-        SELECT
-            $schema.metadata.positorSuffix,
-            $schema.metadata.reliableSuffix,
-            $anchor.identityColumnName,
-            $(schema.METADATA)? $anchor.metadataColumnName,
- ~*/
-        while (attribute = anchor.nextAttribute()) {
-/*~
-            $(schema.IMPROVED)? $attribute.anchorReferenceName,
-            $(schema.METADATA)? $attribute.metadataColumnName,
-            $(attribute.isHistorized())? $attribute.changingColumnName,
-            $attribute.positorColumnName,
-            $attribute.positingColumnName,
-            $attribute.reliabilityColumnName,
-            $attribute.reliableColumnName,
-~*/
-            if(attribute.isKnotted()) {
-                knot = attribute.knot;
-/*~
-            $attribute.knotValueColumnName,
-            $(knot.hasChecksum())? $attribute.knotChecksumColumnName,
-            $(schema.METADATA)? $attribute.knotMetadataColumnName,
-~*/
-            }
-/*~
-            $attribute.valueColumnName,
-~*/
-        }
-/*~
-            ROW_NUMBER() OVER (PARTITION BY $anchor.identityColumnName ORDER BY $anchor.identityColumnName) AS Row
-        FROM
-          new_l$anchor.name
-    ) i
-    LEFT JOIN
-        \"$anchor.mnemonic\" a
-    ON
-        a.Row = i.Row;
+    FROM
+        new_l$anchor.name i
+    ORDER BY i.$anchor.identityColumnName;
 ~*/
         while (attribute = anchor.nextAttribute()) {
             knot = attribute.knot;
 /*~
-    INSERT INTO $attribute.capsule$.\"$attribute.name\" (
-        $(schema.METADATA)? $attribute.metadataColumnName,
+    INSERT INTO $attribute.capsule$.\"$attribute.positName\" (
         $attribute.anchorReferenceName,
-        $attribute.valueColumnName,
+        $attribute.identityColumnName,
         $(attribute.timeRange)? $attribute.changingColumnName,
+        $attribute.valueColumnName
+    )
+    SELECT
+        i.$attribute.anchorReferenceName,
+        i.$attribute.identityColumnName,
+        $(attribute.timeRange)? i.$attribute.changingColumnName,
+        $(attribute.isKnotted())? COALESCE(i.$attribute.valueColumnName, k$knot.mnemonic$.$knot.identityColumnName) : i.$attribute.valueColumnName
+    FROM
+        inserted i
+~*/
+            if(attribute.isKnotted()) {
+/*~
+    LEFT JOIN
+        $knot.capsule$.\"$knot.name\" k$knot.mnemonic
+    ON
+        $(knot.hasChecksum())? k$knot.mnemonic$.$knot.checksumColumnName = i.$attribute.knotChecksumColumnName : k$knot.mnemonic$.$knot.valueColumnName = i.$attribute.knotValueColumnName
+    WHERE
+        COALESCE(i.$attribute.valueColumnName, k$knot.mnemonic$.$knot.identityColumnName) IS NOT NULL;
+~*/
+            }
+            else {
+/*~
+    WHERE
+        i.$attribute.valueColumnName IS NOT NULL;
+~*/
+            }
+
+/*~
+    INSERT INTO $attribute.capsule$.\"$attribute.annexName\" (
+        $attribute.identityColumnName,
         $attribute.positingColumnName,
         $attribute.positorColumnName,
         $attribute.reliabilityColumnName
     )
     SELECT
-        $(schema.METADATA)? i.$attribute.metadataColumnName,
-        i.$attribute.anchorReferenceName,
-        $(attribute.isKnotted())? COALESCE(i.$attribute.valueColumnName, k$knot.mnemonic$.$knot.identityColumnName), : i.$attribute.valueColumnName,
-        $(attribute.timeRange)? i.$attribute.changingColumnName,
+        i.$attribute.identityColumnName,
         i.$attribute.positingColumnName,
         i.$attribute.positorColumnName,
         i.$attribute.reliabilityColumnName
@@ -270,7 +248,7 @@ CREATE OR REPLACE FUNCTION $anchor.capsule$.\"if_l$anchor.name$\"()
         }
 /*~
     DROP TABLE new_l$anchor.name;
-    DROP TABLE \"$anchor.mnemonic\";
+
     DROP TABLE inserted;
 
     RETURN null;
@@ -289,7 +267,7 @@ CREATE TRIGGER \"it_l$anchor.name$_pre\" BEFORE INSERT ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new');
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('new');
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new');
 CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$\"();
@@ -301,7 +279,7 @@ CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$a
 -- uf_l$anchor.name instead of UPDATE trigger function on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"uf_l$anchor.name\"()
-    RETURNS trigger AS
+    RETURNS trigger AS 
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
@@ -446,7 +424,7 @@ CREATE TRIGGER \"ut_l$anchor.name$_pre\" BEFORE UPDATE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new','old');
 CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('new', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new', 'old');
 CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
@@ -458,7 +436,7 @@ CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$a
 -- df_l$anchor.name instead of DELETE trigger function on l$anchor.name
 -----------------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION $anchor.capsule$.\"df_l$anchor.name\"()
-    RETURNS trigger AS
+    RETURNS trigger AS 
     $$BODY$$
     DECLARE \"now\" $schema.metadata.chronon;
     BEGIN
@@ -505,7 +483,7 @@ CREATE TRIGGER \"dt_l$anchor.name$_pre\" BEFORE DELETE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('old');
 CREATE TRIGGER \"dt_l$anchor.name\" INSTEAD OF DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('old');
+    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'old');
 CREATE TRIGGER \"dt_l$anchor.name$_post\" AFTER DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"df_l$anchor.name\"();
