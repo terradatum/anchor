@@ -267,7 +267,7 @@ CREATE TRIGGER \"it_l$anchor.name$_pre\" BEFORE INSERT ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new');
 CREATE TRIGGER \"it_l$anchor.name\" INSTEAD OF INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new');
+    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('new');
 CREATE TRIGGER \"it_l$anchor.name$_post\" AFTER INSERT ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"if_l$anchor.name$\"();
@@ -424,7 +424,7 @@ CREATE TRIGGER \"ut_l$anchor.name$_pre\" BEFORE UPDATE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('new','old');
 CREATE TRIGGER \"ut_l$anchor.name\" INSTEAD OF UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'new', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('new', 'old');
 CREATE TRIGGER \"ut_l$anchor.name$_post\" AFTER UPDATE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"uf_l$anchor.name\"();
@@ -483,7 +483,7 @@ CREATE TRIGGER \"dt_l$anchor.name$_pre\" BEFORE DELETE ON $anchor.capsule$.\"l$a
     EXECUTE PROCEDURE $anchor.capsule$.\"tri_l$anchor.name\"('old');
 CREATE TRIGGER \"dt_l$anchor.name\" INSTEAD OF DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH ROW
-    EXECUTE PROCEDURE $anchor.capsule$.tri_instead('l$anchor.name', 'old');
+    EXECUTE PROCEDURE $anchor.capsule$.\"io_l$anchor.name$\"('old');
 CREATE TRIGGER \"dt_l$anchor.name$_post\" AFTER DELETE ON $anchor.capsule$.\"l$anchor.name\"
     FOR EACH STATEMENT
     EXECUTE PROCEDURE $anchor.capsule$.\"df_l$anchor.name\"();
